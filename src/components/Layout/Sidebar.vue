@@ -11,20 +11,28 @@ async function openRepo() {
     multiple: false,
   });
   await invoke("open", { path: selected });
+  await resfreshBranches();
+  repoName.value = await invoke("get_repo_name");
+}
+async function resfreshBranches() {
   localBranchesNames.value = await invoke("find_branches", { filter: "Local" });
   remoteBranchesNames.value = await invoke("find_branches", {
     filter: "Remote",
   });
   activeBranchName.value = await invoke("get_current_branch_name");
-  repoName.value = await invoke("get_repo_name");
-  console.log(1, activeBranchName.value);
 }
-
 async function checkoutBranch(branch: string) {
   console.log("checkout", branch);
   await invoke("checkout_branch", { branchName: branch });
   console.log(123, await invoke("get_current_branch_name"));
   activeBranchName.value = await invoke("get_current_branch_name");
+}
+async function getRemotes() {
+  console.log("remotes:", await invoke("get_remotes"));
+}
+async function fetchRemote() {
+  await invoke("fetch_remote");
+  await resfreshBranches();
 }
 </script>
 
@@ -40,6 +48,8 @@ async function checkoutBranch(branch: string) {
     >
       Open repo
     </button>
+    <button @click="getRemotes">Get remotes</button>
+    <button @click="fetchRemote">Fetch remote</button>
     <div class="bg-blue-700 m-2 rounded-md" v-if="repoName">
       <h1 class="font-semibold text-left p-2">Active branches</h1>
       <hr class="border-b-[1px] mx-4 mb-1" />
@@ -50,21 +60,13 @@ async function checkoutBranch(branch: string) {
         :key="branch"
       >
         <div
-          v-if="branch === activeBranchName"
           as="button"
           @click="checkoutBranch(branch)"
-          class="text-black hover:text-slate-300 transition-colors duration-150 ease-in-out cursor-default font-medium bg-sky-600 pl-2"
+          class="text-black hover:text-slate-300 transition-colors duration-150 ease-in-out cursor-default font-semibold pl-2"
+          :class="{ 'bg-sky-600': branch === activeBranchName }"
         >
           {{ branch }}
         </div>
-        <span
-          v-else
-          as="button"
-          @click="checkoutBranch(branch)"
-          class="text-black hover:text-slate-300 transition-colors duration-150 ease-in-out cursor-default font-medium pl-2"
-        >
-          {{ branch }}
-        </span>
       </div>
       <h1 class="font-semibold text-left p-2">Remote branches</h1>
       <div
@@ -73,9 +75,13 @@ async function checkoutBranch(branch: string) {
         :key="branch"
       >
         <div
-          class="text-black  cursor-default font-medium pl-2 flex justify-between pr-1"
+          class="text-black cursor-default font-semibold pl-2 flex justify-between pr-1"
         >
-          {{ branch }} <i class="hover:text-slate-300 transition-colors duration-150 ease-in-out cursor-default">>></i>
+          {{ branch }}
+          <strong
+            class="hover:text-slate-300 transition-colors duration-150 ease-in-out cursor-default"
+            >>></strong
+          >
         </div>
       </div>
     </div>

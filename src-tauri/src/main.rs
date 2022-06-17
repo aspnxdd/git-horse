@@ -26,7 +26,9 @@ fn main() {
             cmd::find_branches,
             cmd::get_current_branch_name,
             cmd::get_repo_name,
-            cmd::checkout_branch
+            cmd::checkout_branch,
+            cmd::get_remotes,
+            cmd::fetch_remote
         ])
         .menu(menu::Menu::new())
         .on_menu_event(|event| {
