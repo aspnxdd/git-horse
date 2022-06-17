@@ -4,8 +4,13 @@
 )]
 
 use tauri::api::shell;
-use tauri::{CustomMenuItem, Manager, Menu, Submenu};
+use tauri::Manager;
 
+mod cmd;
+mod error;
+mod git;
+mod menu;
+mod state;
 #[tauri::command]
 fn backend_add(number: i32) -> i32 {
     println!("Backend was called with an argument: {}", number);
@@ -13,19 +18,15 @@ fn backend_add(number: i32) -> i32 {
 }
 
 fn main() {
-    let ctx = tauri::generate_context!();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![backend_add])
-        .menu(
-            tauri::Menu::os_default("Tauri Vue Template").add_submenu(Submenu::new(
-                "Help",
-                Menu::with_items([CustomMenuItem::new(
-                    "Online Documentation",
-                    "Online Documentation",
-                )
-                .into()]),
-            )),
-        )
+        .manage(state::MyState::default())
+        .invoke_handler(tauri::generate_handler![
+            backend_add,
+            cmd::open,
+            cmd::find_branches,
+            cmd::get_current_branch_name
+        ])
+        .menu(menu::Menu::new())
         .on_menu_event(|event| {
             let event_name = event.menu_item_id();
             match event_name {
@@ -36,6 +37,6 @@ fn main() {
                 _ => {}
             }
         })
-        .run(ctx)
+        .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
