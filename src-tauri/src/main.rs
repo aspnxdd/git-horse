@@ -24,7 +24,9 @@ fn main() {
             backend_add,
             cmd::open,
             cmd::find_branches,
-            cmd::get_current_branch_name
+            cmd::get_current_branch_name,
+            cmd::get_repo_name,
+            cmd::checkout_branch
         ])
         .menu(menu::Menu::new())
         .on_menu_event(|event| {
