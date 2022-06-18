@@ -12,11 +12,15 @@ const repoStore = useRepoStore();
 const filesModifiedNames = ref<null | string[]>(null);
 const checkboxIter = ref<boolean[]>([]);
 const filesChangedToogle = ref<boolean>(true);
-const repoDiffStats = ref<null | RepoDiffStats>(null);
+const repoDiffStats = ref<RepoDiffStats>({
+  deletions: 0,
+  files_changed: 0,
+  insertions: 0,
+});
 
 async function getModifiedFiles() {
-  filesModifiedNames.value = await invoke("get_modified_files");
-  console.log("filesModifiedNames", filesModifiedNames.value);
+  const res = await invoke<string[]>("get_modified_files");
+  if (res.length > 0) filesModifiedNames.value = res;
 }
 async function getRepoDiff() {
   repoDiffStats.value = await invoke<RepoDiffStats>("get_repo_diff");
@@ -39,6 +43,12 @@ function toggleAll() {
     v-if="!repoStore.repo"
   >
     <h1 class="text-2xl">Select a repository</h1>
+  </main>
+  <main
+    class="bg-[#0f172a] flex flex-col items-center justify-center w-full p-4 text-slate-100"
+    v-else-if="repoStore.repo && !filesModifiedNames"
+  >
+    <h1 class="text-2xl">No new changes</h1>
   </main>
   <main
     v-else
