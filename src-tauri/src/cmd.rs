@@ -271,3 +271,29 @@ pub fn fetch_remote(state: AppArg, remote: Option<String>) -> Result<(), PError>
     }
     Err(PError::RepoNotFound)
 }
+
+#[command]
+pub fn get_modified_files(state: AppArg) -> Result<Vec<String>, PError> {
+    const INTERESTING: git2::Status = git2::Status::from_bits_truncate(
+        git2::Status::WT_NEW.bits()
+            | git2::Status::CONFLICTED.bits()
+            | git2::Status::WT_MODIFIED.bits(),
+    );
+    let repo = state.repo.clone();
+    let repo = repo.lock().unwrap();
+    let repo = repo.as_ref();
+    if let Some(repo) = repo {
+        let statuses = repo.statuses(None).unwrap();
+        let mut files = Vec::new();
+        for entry in statuses.iter() {
+            let status = entry.status();
+            if status.intersects(INTERESTING) {
+                if let Some(path) = entry.path() {
+                    files.push(path.to_owned());
+                }
+            }
+        }
+        return Ok(files);
+    }
+    Err(PError::RepoNotFound)
+}

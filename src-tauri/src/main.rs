@@ -28,7 +28,8 @@ fn main() {
             cmd::get_repo_name,
             cmd::checkout_branch,
             cmd::get_remotes,
-            cmd::fetch_remote
+            cmd::fetch_remote,
+            cmd::get_modified_files
         ])
         .menu(menu::Menu::new())
         .on_menu_event(|event| {
