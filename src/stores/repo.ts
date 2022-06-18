@@ -1,17 +1,14 @@
 import { defineStore } from "pinia";
 
-const useLogsStore = defineStore("repoStore", {
+const useRepoStore = defineStore("repoStore", {
   state: () => ({
-    repo: null as string|null,
+    repo: null as string | null,
   }),
   actions: {
-    setLogs(newLog: string) {
-      this.logs.push(newLog);
-    },
-    clearLogs() {
-      this.logs = [];
+    setRepo(newRepo: string) {
+      this.repo = newRepo;
     },
   },
 });
 
-export default useLogsStore;
+export default useRepoStore;

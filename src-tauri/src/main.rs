@@ -29,7 +29,8 @@ fn main() {
             cmd::checkout_branch,
             cmd::get_remotes,
             cmd::fetch_remote,
-            cmd::get_modified_files
+            cmd::get_modified_files,
+            cmd::get_repo_diff
         ])
         .menu(menu::Menu::new())
         .on_menu_event(|event| {

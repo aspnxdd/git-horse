@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from "@tauri-apps/api/tauri";
 
 interface Emits {
   (e: "update:checked", checked: boolean): void;
@@ -18,12 +18,6 @@ const props = defineProps({
     default: true,
   },
 });
-onUpdated(() => {
-  console.log("checked", props.checked);
-});
-async function getFileStatus(){
-    await invoke("get_file_status", {path:props.fileName});
-}
 </script>
 
 <template>

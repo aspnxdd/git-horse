@@ -3,6 +3,7 @@ use git2::{AutotagOption, FetchOptions, RemoteCallbacks, Repository};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DisplayFromStr};
 use std::io::{self, Write};
+use std::path::Path;
 use std::str;
 use tauri::command;
 
@@ -202,34 +203,6 @@ pub fn fetch_remote(state: AppArg, remote: Option<String>) -> Result<(), PError>
             io::stdout().flush().unwrap();
             true
         });
-        // Download the packfile and index it. This function updates the amount of
-        // received data and the indexer stats which lets you inform the user about
-        // progress.
-        // cb.credentials(|_url, username_from_url, _allowed_types| {
-        //     git2::Cred::ssh_key(
-        //       username_from_url.unwrap(),
-        //       None,
-        //       std::path::Path::new(&format!("{}/.ssh/id_rsa", std::env::var("HOME").unwrap())),
-        //       None,
-        //     )
-        //   });
-
-        // let git_config = git2::Config::open_default().unwrap();
-        // for entry in &git_config.entries(None).unwrap() {
-        //     let entry = entry.unwrap();
-        //     println!("{} => {}", entry.name().unwrap(), entry.value().unwrap());
-        // }
-        // cb.credentials(move|_url, username_from_url, _allowed_types| {
-        //     println!("_url {}", _url);
-        //     println!("username_from_url {:#?}", username_from_url);
-
-        //     git2::Cred::ssh_key(
-        //         username_from_url.unwrap(),
-        //         None,
-        //         std::path::Path::new(&format!("{}/.ssh/id_rsa", std::env::var("HOME").unwrap())),
-        //         None,
-        //     )
-        // });
         let git_config = git2::Config::open_default().unwrap();
         let mut ch = git2_credentials::CredentialHandler::new(git_config);
         cb.credentials(move |url, username, allowed| {
@@ -294,6 +267,40 @@ pub fn get_modified_files(state: AppArg) -> Result<Vec<String>, PError> {
             }
         }
         return Ok(files);
+    }
+    Err(PError::RepoNotFound)
+}
+#[derive(Serialize)]
+pub struct Stats {
+    deletions: usize,
+    insertions: usize,
+    files_changed: usize,
+}
+#[command]
+pub fn get_repo_diff(state: AppArg) -> Result<Stats, PError> {
+    let repo = state.repo.clone();
+    let repo = repo.lock().unwrap();
+    let repo = repo.as_ref();
+    if let Some(repo) = repo {
+        let stats = match repo.diff_index_to_workdir(None, None) {
+            Ok(diff) => match diff.stats() {
+                Ok(stats) => stats,
+                Err(e) => {
+                    println!("get stats failed : {:?}", e);
+                    return Err(PError::GetStatsFailed);
+                }
+            },
+            Err(e) => {
+                println!("get diff failed : {:?}", e);
+                return Err(PError::GetDiffFailed);
+            }
+        };
+        let stats = Stats {
+            deletions: stats.deletions(),
+            insertions: stats.insertions(),
+            files_changed: stats.files_changed(),
+        };
+        return Ok(stats);
     }
     Err(PError::RepoNotFound)
 }

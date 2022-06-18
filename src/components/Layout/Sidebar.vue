@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/dialog";
+import { useRepoStore } from "../../stores/index";
 const activeBranchName = ref<null | string>(null);
 const repoName = ref<null | string>(null);
 const localBranchesNames = ref<null | string[]>(null);
 const remoteBranchesNames = ref<null | string[]>(null);
+
+const repoStore = useRepoStore();
 async function openRepo() {
   const selected = await open({
     directory: true,
@@ -13,6 +16,7 @@ async function openRepo() {
   await invoke("open", { path: selected });
   await resfreshBranches();
   repoName.value = await invoke("get_repo_name");
+  repoStore.setRepo(repoName.value as string);
 }
 async function resfreshBranches() {
   localBranchesNames.value = await invoke("find_branches", { filter: "Local" });
@@ -22,9 +26,7 @@ async function resfreshBranches() {
   activeBranchName.value = await invoke("get_current_branch_name");
 }
 async function checkoutBranch(branch: string) {
-  console.log("checkout", branch);
   await invoke("checkout_branch", { branchName: branch });
-  console.log(123, await invoke("get_current_branch_name"));
   activeBranchName.value = await invoke("get_current_branch_name");
 }
 async function getRemotes() {
