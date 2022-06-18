@@ -65,7 +65,6 @@ pub fn find_branches(state: AppArg, filter: Option<MyBranchType>) -> Result<Vec<
                     result.push(branch.name().unwrap().unwrap().to_string());
                 }
             }
-            println!("res: {:#?}", result);
             Ok(result)
         }
         Err(_) => {
@@ -214,6 +213,28 @@ pub fn fetch_remote(state: AppArg, remote: Option<String>) -> Result<(), PError>
         //       None,
         //     )
         //   });
+
+        // let git_config = git2::Config::open_default().unwrap();
+        // for entry in &git_config.entries(None).unwrap() {
+        //     let entry = entry.unwrap();
+        //     println!("{} => {}", entry.name().unwrap(), entry.value().unwrap());
+        // }
+        // cb.credentials(move|_url, username_from_url, _allowed_types| {
+        //     println!("_url {}", _url);
+        //     println!("username_from_url {:#?}", username_from_url);
+
+        //     git2::Cred::ssh_key(
+        //         username_from_url.unwrap(),
+        //         None,
+        //         std::path::Path::new(&format!("{}/.ssh/id_rsa", std::env::var("HOME").unwrap())),
+        //         None,
+        //     )
+        // });
+        let git_config = git2::Config::open_default().unwrap();
+        let mut ch = git2_credentials::CredentialHandler::new(git_config);
+        cb.credentials(move |url, username, allowed| {
+            ch.try_next_credential(url, username, allowed)
+        });
         let mut fo = FetchOptions::new();
         fo.remote_callbacks(cb);
         remote.download(&[] as &[String], Some(&mut fo))?;
