@@ -35,6 +35,13 @@ function toggleAll() {
 
 <template>
   <main
+    class="bg-[#0f172a] flex flex-col items-center justify-center w-full p-4 text-slate-100"
+    v-if="!repoStore.repo"
+  >
+    <h1 class="text-2xl">Select a repository</h1>
+  </main>
+  <main
+    v-else
     class="bg-[#0f172a] flex flex-col items-start w-full p-4 text-slate-100"
   >
     <span class="flex items-center justify-center gap-2 p-2">
