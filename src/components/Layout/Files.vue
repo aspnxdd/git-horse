@@ -5,7 +5,7 @@ import { useRepoStore } from "../../stores";
 
 interface RepoDiffStats {
   deletions: number;
-  files_changed: number;
+  filesChanged: number;
   insertions: number;
 }
 const repoStore = useRepoStore();
@@ -14,7 +14,7 @@ const checkboxIter = ref<boolean[]>([]);
 const filesChangedToogle = ref<boolean>(true);
 const repoDiffStats = ref<RepoDiffStats>({
   deletions: 0,
-  files_changed: 0,
+  filesChanged: 0,
   insertions: 0,
 });
 
@@ -68,7 +68,6 @@ function toggleAll() {
     </span>
     <div class="flex flex-col text-left ml-4">
       <span> 🟢 Insertions: {{ repoDiffStats?.insertions }}</span>
-      <span> 🟠 Files changed: {{ repoDiffStats?.files_changed }}</span>
       <span> 🔴 Deletions: {{ repoDiffStats?.deletions }}</span>
     </div>
     <ul class="list-none">

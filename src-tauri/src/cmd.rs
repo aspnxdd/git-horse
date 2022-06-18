@@ -265,6 +265,7 @@ pub fn get_modified_files(state: AppArg) -> Result<Vec<String>, PError> {
     Err(PError::RepoNotFound)
 }
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Stats {
     deletions: usize,
     insertions: usize,
