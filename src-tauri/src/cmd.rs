@@ -32,13 +32,7 @@ pub fn open(state: AppArg, path: &str) -> Result<String, PError> {
         }
     }
 }
-// #[serde(remote = "BranchType")]
-// #[derive(Debug, Serialize, Deserialize)]
-// enum LocalBranchType {
-//     Local,
-//     Remote,
-// }
-// #[serde_as("LocalBranchType")]
+
 #[derive(Serialize, Deserialize, Debug)]
 pub enum MyBranchType {
     Local,
