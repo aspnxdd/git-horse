@@ -37,8 +37,8 @@ async function fetchRemote() {
 </script>
 
 <template>
-  <div
-    class="absolute left-0 top-0 h-screen bg-blue-900 w-52 flex flex-col text-white"
+  <nav
+    class="relative left-0 top-0 h-screen bg-blue-900 w-52 flex flex-col text-white"
   >
     <h1 class="font-semibold">Current repository</h1>
     <span class="font-semibold text-slate-400">{{ repoName || "-" }}</span>
@@ -85,7 +85,7 @@ async function fetchRemote() {
         </div>
       </div>
     </div>
-  </div>
+  </nav>
 </template>
 
 <style scoped>
