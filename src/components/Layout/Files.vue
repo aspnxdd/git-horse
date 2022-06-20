@@ -65,13 +65,15 @@ async function add() {
   }
   await getModifiedFiles();
 }
-function commit() {
+async function commit() {
   if (!commitMessage.value) {
     alert("Please enter commit message");
     return;
   }
 
-  invoke("commit", { message: commitMessage.value });
+  await invoke("commit", { message: commitMessage.value });
+  await getStagedFiles();
+
 }
 </script>
 
