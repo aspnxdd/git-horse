@@ -39,6 +39,7 @@ watch(repoStore, async () => {
   await getStagedFiles();
 });
 
+
 function toggleAll() {
   const falseArray = filesModifiedNames.value?.map(() => false) as boolean[];
   const trueArray = filesModifiedNames.value?.map(() => true) as boolean[];
