@@ -36,21 +36,20 @@ function toggleAll() {
   const trueArray = filesModifiedNames.value?.map(() => true) as boolean[];
   checkboxIter.value = filesChangedToogle.value ? falseArray : trueArray;
 }
-function updateArr(b:boolean, index:number){
-  checkboxIter.value[index] = b
-  console.log("ch",checkboxIter.value)
+function updateArr(b: boolean, index: number) {
+  checkboxIter.value[index] = b;
+  console.log("ch", checkboxIter.value);
 }
 function add() {
   if (filesChangedToogle.value) {
     invoke("add_all");
   } else {
-    for (let [index, file] of filesModifiedNames.value?.entries()!) {
-      console.log(123, checkboxIter.value)
-      if (checkboxIter.value[index]) {
-        console.log(index, file);
-        invoke("add", {file});
-      }
-    }
+    const files = filesModifiedNames.value?.reduce((acc, curr, i) => {
+      const _acc = checkboxIter.value[i] ? [...acc, curr] : acc;
+      return _acc;
+    }, [] as string[]);
+
+    invoke("add", { files });
   }
 }
 function commit() {
@@ -97,7 +96,11 @@ function commit() {
         v-for="(file, index) in filesModifiedNames"
         :key="file"
       >
-        <File :file-name="file" :checked="checkboxIter[index]" @update:checked="(b)=>updateArr(b, index)" />
+        <File
+          :file-name="file"
+          :checked="checkboxIter[index]"
+          @update:checked="(b) => updateArr(b, index)"
+        />
       </li>
     </ul>
     <button
