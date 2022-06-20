@@ -11,6 +11,12 @@ use crate::error::PError;
 use crate::git;
 use crate::state::AppArg;
 
+const INTERESTING: git2::Status = git2::Status::from_bits_truncate(
+    git2::Status::WT_NEW.bits()
+        | git2::Status::CONFLICTED.bits()
+        | git2::Status::WT_MODIFIED.bits(),
+);
+
 #[command]
 pub fn open(state: AppArg, path: &str) -> Result<String, PError> {
     match git::Repo::open(path) {
@@ -241,11 +247,6 @@ pub fn fetch_remote(state: AppArg, remote: Option<String>) -> Result<(), PError>
 
 #[command]
 pub fn get_modified_files(state: AppArg) -> Result<Vec<String>, PError> {
-    const INTERESTING: git2::Status = git2::Status::from_bits_truncate(
-        git2::Status::WT_NEW.bits()
-            | git2::Status::CONFLICTED.bits()
-            | git2::Status::WT_MODIFIED.bits(),
-    );
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
@@ -309,6 +310,9 @@ pub fn add_all(state: AppArg) -> Result<(), PError> {
         let mut index = repo.index()?;
         index.add_all(["*"].iter(), git2::IndexAddOption::DEFAULT, None)?;
         index.write()?;
+        for s in repo.statuses(None).unwrap().iter() {
+            println!("{:?}", s.path());
+        }
         return Ok(());
     }
     Err(PError::RepoNotFound)
@@ -319,11 +323,6 @@ pub fn add(state: AppArg, files: Vec<String>) -> Result<(), PError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
-    const INTERESTING: git2::Status = git2::Status::from_bits_truncate(
-        git2::Status::WT_NEW.bits()
-            | git2::Status::CONFLICTED.bits()
-            | git2::Status::WT_MODIFIED.bits(),
-    );
     if let Some(repo) = repo {
         let statuses = repo.statuses(None).unwrap();
         let mut files_to_add = Vec::new();

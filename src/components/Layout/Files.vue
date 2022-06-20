@@ -12,6 +12,7 @@ const repoStore = useRepoStore();
 const filesModifiedNames = ref<null | string[]>(null);
 const checkboxIter = ref<boolean[]>([]);
 const filesChangedToogle = ref<boolean>(true);
+const commitMessage = ref<string | null>(null);
 const repoDiffStats = ref<RepoDiffStats>({
   deletions: 0,
   filesChanged: 0,
@@ -38,8 +39,12 @@ function toggleAll() {
 }
 function updateArr(b: boolean, index: number) {
   checkboxIter.value[index] = b;
-  console.log("ch", checkboxIter.value);
+  filesChangedToogle.value = false;
+  if (checkboxIter.value.every((v) => v === true)) {
+    filesChangedToogle.value = true;
+  }
 }
+
 function add() {
   if (filesChangedToogle.value) {
     invoke("add_all");
@@ -53,7 +58,12 @@ function add() {
   }
 }
 function commit() {
-  invoke("commit", { message: "test1" });
+  if (!commitMessage.value) {
+    alert("Please enter commit message");
+    return;
+  }
+
+  invoke("commit", { message: commitMessage.value });
 }
 </script>
 
@@ -90,7 +100,7 @@ function commit() {
       <span> 🟢 Insertions: {{ repoDiffStats?.insertions }}</span>
       <span> 🔴 Deletions: {{ repoDiffStats?.deletions }}</span>
     </div>
-    <ul class="list-none">
+    <ul class="list-none p-2 bg-[#21325a] rounded-xl m-2">
       <li
         class="text-left p-2"
         v-for="(file, index) in filesModifiedNames"
@@ -107,13 +117,19 @@ function commit() {
       @click="add"
       class="px-4 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
     >
-      Add all
+      Add
     </button>
+    <input
+      type="text"
+      class="rounded-lg my-2 p-1 text-black"
+      placeholder="Commit message"
+      v-model="commitMessage"
+    />
     <button
       @click="commit"
       class="px-4 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
     >
-      Commit
+      Commit to {{ repoStore.activeBranch }}
     </button>
   </main>
 </template>

@@ -16,6 +16,7 @@ async function openRepo() {
   await invoke("open", { path: selected });
   await resfreshBranches();
   repoName.value = await invoke("get_repo_name");
+  
   repoStore.setRepo(repoName.value as string);
 }
 async function resfreshBranches() {
@@ -24,6 +25,7 @@ async function resfreshBranches() {
     filter: "Remote",
   });
   activeBranchName.value = await invoke("get_current_branch_name");
+  repoStore.setActiveBranch(activeBranchName.value as string);
 }
 async function checkoutBranch(branch: string) {
   await invoke("checkout_branch", { branchName: branch });
