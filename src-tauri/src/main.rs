@@ -33,7 +33,8 @@ fn main() {
             cmd::get_repo_diff,
             cmd::commit,
             cmd::add_all,
-            cmd::add
+            cmd::add,
+            cmd::get_staged_files
         ])
         .menu(menu::Menu::new())
         .on_menu_event(|event| {

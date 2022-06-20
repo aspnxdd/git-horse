@@ -311,13 +311,31 @@ pub fn add_all(state: AppArg) -> Result<(), PError> {
         index.add_all(["*"].iter(), git2::IndexAddOption::DEFAULT, None)?;
         index.write()?;
         for s in repo.statuses(None).unwrap().iter() {
-            println!("{:?}", s.path());
+            if s.status() != git2::Status::IGNORED {
+                println!("{:?}", s.path());
+            }
         }
         return Ok(());
     }
     Err(PError::RepoNotFound)
 }
-
+#[command]
+pub fn get_staged_files(state: AppArg) -> Result<Vec<String>, PError> {
+    let repo = state.repo.clone();
+    let repo = repo.lock().unwrap();
+    let repo = repo.as_ref();
+    if let Some(repo) = repo {
+        let mut status_options = git2::StatusOptions::new();
+        let files = repo
+            .statuses(Some(status_options.include_ignored(false)))
+            .unwrap()
+            .iter()
+            .map(|s| s.path().unwrap().to_owned())
+            .collect();
+        return Ok(files);
+    }
+    Err(PError::RepoNotFound)
+}
 #[command]
 pub fn add(state: AppArg, files: Vec<String>) -> Result<(), PError> {
     let repo = state.repo.clone();
