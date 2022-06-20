@@ -22,6 +22,7 @@ async function getModifiedFiles() {
   const res = await invoke<string[]>("get_modified_files");
   if (res.length > 0) filesModifiedNames.value = res;
 }
+
 async function getRepoDiff() {
   repoDiffStats.value = await invoke<RepoDiffStats>("get_repo_diff");
 }

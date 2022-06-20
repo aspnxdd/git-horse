@@ -326,15 +326,29 @@ pub fn commit(state: AppArg, message: String) -> Result<(), PError> {
         let parent = repo.head()?.peel_to_commit()?;
         let parent_id = parent.id();
         let parent_id = repo.find_commit(parent_id)?;
-        let commit = repo.commit(
-            None,
+        let commit = repo.commit_create_buffer(
             &repo.signature().unwrap(),
             &repo.signature().unwrap(),
             &message,
             &tree,
             &[&parent_id],
         )?;
-        println!("{:#?}", commit);
+        let commit_signed = repo.commit_signed(
+            &str::from_utf8(&commit).unwrap().to_string(),
+            &repo.signature().unwrap().to_string(),
+            None,
+        );
+        if let Ok(commit_signed) = commit_signed {
+            let commit_id = repo.find_commit(commit_signed)?;
+            let head = repo.head()?;
+            let head_id = head.peel_to_commit().unwrap().id();
+            if head_id == commit_id.id() {
+                return Ok(());
+            }
+            let mut head_ref = repo.head().unwrap();
+            head_ref.set_target(commit_id.id(), "commit")?;
+        }
+        println!("{:#?}", commit_signed);
         return Ok(());
     }
     Err(PError::RepoNotFound)
