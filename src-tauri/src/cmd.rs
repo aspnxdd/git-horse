@@ -309,6 +309,10 @@ pub fn add(state: AppArg) -> Result<(), PError> {
         let mut index = repo.index()?;
         index.add_all(["*"].iter(), git2::IndexAddOption::DEFAULT, None)?;
         index.write()?;
+        let ii = index.iter();
+        for i in ii {
+            println!("{:#?}", i);
+        }
         return Ok(());
     }
     Err(PError::RepoNotFound)
@@ -337,18 +341,15 @@ pub fn commit(state: AppArg, message: String) -> Result<(), PError> {
             &str::from_utf8(&commit).unwrap().to_string(),
             &repo.signature().unwrap().to_string(),
             None,
-        );
-        if let Ok(commit_signed) = commit_signed {
-            let commit_id = repo.find_commit(commit_signed)?;
-            let head = repo.head()?;
-            let head_id = head.peel_to_commit().unwrap().id();
-            if head_id == commit_id.id() {
-                return Ok(());
-            }
-            let mut head_ref = repo.head().unwrap();
-            head_ref.set_target(commit_id.id(), "commit")?;
+        )?;
+        let commit_id = repo.find_commit(commit_signed)?;
+        let head = repo.head()?;
+        let head_id = head.peel_to_commit()?.id();
+        if head_id == commit_id.id() {
+            return Ok(());
         }
-        println!("{:#?}", commit_signed);
+        let mut head_ref = repo.head().unwrap();
+        head_ref.set_target(commit_id.id(), "commit")?;
         return Ok(());
     }
     Err(PError::RepoNotFound)
