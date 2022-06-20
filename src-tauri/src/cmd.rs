@@ -301,7 +301,7 @@ pub fn get_repo_diff(state: AppArg) -> Result<Stats, PError> {
 }
 
 #[command]
-pub fn add(state: AppArg) -> Result<(), PError> {
+pub fn add_all(state: AppArg) -> Result<(), PError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
@@ -309,10 +309,37 @@ pub fn add(state: AppArg) -> Result<(), PError> {
         let mut index = repo.index()?;
         index.add_all(["*"].iter(), git2::IndexAddOption::DEFAULT, None)?;
         index.write()?;
-        let ii = index.iter();
-        for i in ii {
-            println!("{:#?}", i);
+        return Ok(());
+    }
+    Err(PError::RepoNotFound)
+}
+
+#[command]
+pub fn add(state: AppArg, file: String) -> Result<(), PError> {
+    let repo = state.repo.clone();
+    let repo = repo.lock().unwrap();
+    let repo = repo.as_ref();
+    const INTERESTING: git2::Status = git2::Status::from_bits_truncate(
+        git2::Status::WT_NEW.bits()
+            | git2::Status::CONFLICTED.bits()
+            | git2::Status::WT_MODIFIED.bits(),
+    );
+    if let Some(repo) = repo {
+        let statuses = repo.statuses(None).unwrap();
+        let mut files = Vec::new();
+        for entry in statuses.iter() {
+            let status = entry.status();
+            if status.intersects(INTERESTING) {
+                if let Some(path) = entry.path() {
+                    if path == file {
+                        files.push(path.to_owned());
+                    }
+                }
+            }
         }
+        let mut index = repo.index()?;
+        index.add_all(files.iter(), git2::IndexAddOption::DEFAULT, None)?;
+        index.write()?;
         return Ok(());
     }
     Err(PError::RepoNotFound)

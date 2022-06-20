@@ -6,6 +6,7 @@ interface Emits {
 }
 const emits = defineEmits<Emits>();
 function updateChecked(checked: boolean) {
+  console.log(1234, checked);
   emits("update:checked", checked);
 }
 const props = defineProps({

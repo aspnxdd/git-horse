@@ -32,6 +32,7 @@ fn main() {
             cmd::get_modified_files,
             cmd::get_repo_diff,
             cmd::commit,
+            cmd::add_all,
             cmd::add
         ])
         .menu(menu::Menu::new())
