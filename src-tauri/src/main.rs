@@ -30,7 +30,9 @@ fn main() {
             cmd::get_remotes,
             cmd::fetch_remote,
             cmd::get_modified_files,
-            cmd::get_repo_diff
+            cmd::get_repo_diff,
+            cmd::commit,
+            cmd::add
         ])
         .menu(menu::Menu::new())
         .on_menu_event(|event| {

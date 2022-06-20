@@ -5,7 +5,7 @@ use serde_with::{serde_as, DisplayFromStr};
 use std::io::{self, Write};
 use std::path::Path;
 use std::str;
-use tauri::command;
+use tauri::{command, App};
 
 use crate::error::PError;
 use crate::git;
@@ -296,6 +296,46 @@ pub fn get_repo_diff(state: AppArg) -> Result<Stats, PError> {
             files_changed: stats.files_changed(),
         };
         return Ok(stats);
+    }
+    Err(PError::RepoNotFound)
+}
+
+#[command]
+pub fn add(state: AppArg) -> Result<(), PError> {
+    let repo = state.repo.clone();
+    let repo = repo.lock().unwrap();
+    let repo = repo.as_ref();
+    if let Some(repo) = repo {
+        let mut index = repo.index()?;
+        index.add_all(["*"].iter(), git2::IndexAddOption::DEFAULT, None)?;
+        index.write()?;
+        return Ok(());
+    }
+    Err(PError::RepoNotFound)
+}
+
+#[command]
+pub fn commit(state: AppArg, message: String) -> Result<(), PError> {
+    let repo = state.repo.clone();
+    let repo = repo.lock().unwrap();
+    let repo = repo.as_ref();
+    if let Some(repo) = repo {
+        let mut index = repo.index().unwrap();
+        let oid = index.write_tree()?;
+        let tree = repo.find_tree(oid)?;
+        let parent = repo.head()?.peel_to_commit()?;
+        let parent_id = parent.id();
+        let parent_id = repo.find_commit(parent_id)?;
+        let commit = repo.commit(
+            None,
+            &repo.signature().unwrap(),
+            &repo.signature().unwrap(),
+            &message,
+            &tree,
+            &[&parent_id],
+        )?;
+        println!("{:#?}", commit);
+        return Ok(());
     }
     Err(PError::RepoNotFound)
 }

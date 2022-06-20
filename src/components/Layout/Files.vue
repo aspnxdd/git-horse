@@ -35,6 +35,14 @@ function toggleAll() {
   const trueArray = filesModifiedNames.value?.map(() => true) as boolean[];
   checkboxIter.value = filesChangedToogle.value ? falseArray : trueArray;
 }
+function add(){
+
+    invoke("add");
+}
+function commit(){
+
+    invoke("commit", {message:"test1"});
+}
 </script>
 
 <template>
@@ -80,9 +88,16 @@ function toggleAll() {
       </li>
     </ul>
     <button
+    @click="add"
       class="px-4 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
     >
       Add all
+    </button>
+     <button
+    @click="commit"
+      class="px-4 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
+    >
+      Commit
     </button>
   </main>
 </template>
