@@ -17,7 +17,6 @@ async function openRepo() {
   await invoke("open", { path: selected });
   await resfreshBranches();
   repoName.value = await invoke("get_repo_name");
-
   repoStore.setRepo(repoName.value as string);
 }
 async function resfreshBranches() {

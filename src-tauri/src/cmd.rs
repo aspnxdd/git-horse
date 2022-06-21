@@ -17,7 +17,13 @@ const INTERESTING: git2::Status = git2::Status::from_bits_truncate(
         | git2::Status::WT_MODIFIED.bits()
         | git2::Status::WT_DELETED.bits(),
 );
-
+const INTERESTING_STAGED: git2::Status = git2::Status::from_bits_truncate(
+    git2::Status::INDEX_DELETED.bits()
+        | git2::Status::INDEX_MODIFIED.bits()
+        | git2::Status::INDEX_MODIFIED.bits()
+        | git2::Status::INDEX_RENAMED.bits()
+        | git2::Status::INDEX_TYPECHANGE.bits(),
+);
 #[command]
 pub fn open(state: AppArg, path: &str) -> Result<String, PError> {
     match git::Repo::open(path) {
@@ -350,17 +356,16 @@ pub fn get_staged_files(state: AppArg) -> Result<Vec<String>, PError> {
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
-        let mut index = repo.index()?;
-        for x in index.iter() {
-            println!("s: {:?}", std::ffi::CString::new(&x.path[..]).unwrap());
-
-        }
-
         let mut status_options = git2::StatusOptions::new();
         let files = repo
             .statuses(Some(status_options.include_ignored(false)))?
             .iter()
-            .map(|s| s.path().unwrap().to_owned())
+            .filter_map(|s| {
+                if s.status().intersects(INTERESTING_STAGED) {
+                    return Some(s.path().unwrap().to_owned());
+                }
+                None
+            })
             .collect();
         return Ok(files);
     }

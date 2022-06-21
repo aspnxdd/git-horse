@@ -84,6 +84,8 @@ async function add() {
     await invoke("add", { files });
   }
   await getModifiedFiles();
+  await getStagedFiles();
+
 }
 async function commit() {
   if (!commitMessage.value) {
