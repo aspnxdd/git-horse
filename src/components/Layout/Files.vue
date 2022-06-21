@@ -28,7 +28,7 @@ const repoDiffStats = ref<RepoDiffStats>({
 
 function getGitStatus(status: number) {
   if (status === 256) return GitStatus.Modified;
-  if (status === 512) return GitStatus.Removed;
+  if (status === 512) return GitStatus.Deleted;
   if (status === 128) return GitStatus.New;
   return GitStatus.Unknown;
 }

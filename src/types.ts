@@ -1,7 +1,7 @@
 export enum GitStatus {
   Modified = "Modified",
   Unknown = "Unknown",
-  Removed = "Removed",
+  Deleted = "Deleted",
   New = "New"
 }
 

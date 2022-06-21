@@ -28,7 +28,7 @@ function getStatusColor(status: GitStatus) {
   console.log("status color",status)
   if (status == "Modified") return "text-[#b57219]";
   if (status == GitStatus.New) return "text-[#22a81b]";
-  if (status == GitStatus.Removed) return "text-[#bf1b1b]";
+  if (status == GitStatus.Deleted) return "text-[#bf1b1b]";
   if (status == GitStatus.Unknown) return "text-[#575757]";
   return "text-[#f546fa]";
 }
