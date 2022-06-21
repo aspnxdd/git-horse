@@ -166,11 +166,11 @@ async function commit() {
           {{ file }}
         </li>
       </ul>
-      <input
+      <textarea
         type="text"
-        class="rounded-lg my-2 p-1 text-black"
+        class="rounded-lg my-2 p-1 text-black h-40 text-left text-clip"
         placeholder="Commit message"
-        v-model="commitMessage"
+        @change="(e)=>commitMessage=(e.target as HTMLTextAreaElement).value"
       />
       <button
         @click="commit"
