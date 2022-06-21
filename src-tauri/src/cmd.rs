@@ -14,7 +14,8 @@ use crate::state::AppArg;
 const INTERESTING: git2::Status = git2::Status::from_bits_truncate(
     git2::Status::WT_NEW.bits()
         | git2::Status::CONFLICTED.bits()
-        | git2::Status::WT_MODIFIED.bits(),
+        | git2::Status::WT_MODIFIED.bits()
+        | git2::Status::WT_DELETED.bits(),
 );
 
 #[command]
@@ -244,23 +245,41 @@ pub fn fetch_remote(state: AppArg, remote: Option<String>) -> Result<(), PError>
     }
     Err(PError::RepoNotFound)
 }
-
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct FileStatus {
+    file_name: String,
+    status: u32,
+}
 #[command]
-pub fn get_modified_files(state: AppArg) -> Result<Vec<String>, PError> {
+pub fn get_modified_files(state: AppArg) -> Result<Vec<FileStatus>, PError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
+    let mut status_options = git2::StatusOptions::new();
+
     if let Some(repo) = repo {
-        let statuses = repo.statuses(None).unwrap();
+        let statuses = repo
+            .statuses(Some(
+                status_options
+                    .include_ignored(false)
+                    .include_untracked(true),
+            ))
+            .unwrap();
         let mut files = Vec::new();
         for entry in statuses.iter() {
             let status = entry.status();
+            println!("status: {:#?}", status);
             if status.intersects(INTERESTING) {
                 if let Some(path) = entry.path() {
-                    files.push(path.to_owned());
+                    files.push(FileStatus {
+                        file_name: path.to_owned(),
+                        status: status.bits(),
+                    });
                 }
             }
         }
+        println!("files {:#?}", files);
         return Ok(files);
     }
     Err(PError::RepoNotFound)

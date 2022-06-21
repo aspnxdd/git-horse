@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { invoke } from "@tauri-apps/api/tauri";
+import { GitStatus } from "../../types";
+import type { PropType } from "vue";
 
 interface Emits {
   (e: "update:checked", checked: boolean): void;
@@ -14,24 +15,42 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  status: {
+    type: String as PropType<GitStatus>,
+    default: null,
+  },
   checked: {
     type: Boolean,
     default: true,
   },
 });
-
+function getStatusColor(status: GitStatus) {
+  console.log("status color",status)
+  if (status == "Modified") return "text-[#b57219]";
+  if (status == GitStatus.New) return "text-[#22a81b]";
+  if (status == GitStatus.Removed) return "text-[#bf1b1b]";
+  if (status == GitStatus.Unknown) return "text-[#575757]";
+  return "text-[#f546fa]";
+}
+const colorStatus = getStatusColor(props.status);
 </script>
 
 <template>
-  <input
-    type="checkbox"
-    :id="fileName"
-    class="accent-pink-500"
-    :ref="fileName"
-    :checked="props.checked"
-    @input="(event)=>updateChecked((event.target as HTMLInputElement).checked)"
-  />
-  <label :for="fileName">{{ fileName }}</label>
+  <div class="relative flex items-center">
+    <span :class="`${colorStatus} left-0 mr-2 font-bold`"
+      >[{{ status.charAt(0) }}]</span
+    >
+
+    <input
+      type="checkbox"
+      :id="fileName"
+      class="accent-pink-500"
+      :ref="fileName"
+      :checked="props.checked"
+      @input="(event)=>updateChecked((event.target as HTMLInputElement).checked)"
+    />
+    <label :for="fileName">{{ fileName }}</label>
+  </div>
 </template>
 
 <style scoped>

@@ -12,7 +12,14 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "lib": ["esnext", "dom"],
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@components/Layout": ["src/components/Layout/index.ts"],
+      "@stores": ["src/stores/index.ts"],
+      "@lib/*": ["src/lib/*"],
+      "@types":["src/types.ts"]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
   "references": [{ "path": "./tsconfig.node.json" }],

@@ -2,14 +2,20 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { File } from "./index";
 import { useRepoStore } from "../../stores";
-
+import { GitStatus, Replace } from "../../types";
 interface RepoDiffStats {
   deletions: number;
   filesChanged: number;
   insertions: number;
 }
+
+interface FileStatus {
+  fileName: string;
+  status: number;
+}
+
 const repoStore = useRepoStore();
-const filesModifiedNames = ref<string[]>([]);
+const filesModifiedNames = ref<Replace<FileStatus, "status", GitStatus>[]>([]);
 const stagedFilesNames = ref<string[]>([]);
 const checkboxIter = ref<boolean[]>([]);
 const filesChangedToogle = ref<boolean>(true);
@@ -20,10 +26,24 @@ const repoDiffStats = ref<RepoDiffStats>({
   insertions: 0,
 });
 
+function getGitStatus(status: number) {
+  if (status === 256) return GitStatus.Modified;
+  if (status === 512) return GitStatus.Removed;
+  if (status === 128) return GitStatus.New;
+  return GitStatus.Unknown;
+}
+
 async function getModifiedFiles() {
-  const res = await invoke<string[]>("get_modified_files");
+  const res = await invoke<FileStatus[]>("get_modified_files");
   console.log("get_modified_files", res);
-  filesModifiedNames.value = res;
+  const fileStatuses = res.map((i) => {
+    return {
+      fileName: i.fileName,
+      status: getGitStatus(i.status),
+    };
+  });
+  filesModifiedNames.value = fileStatuses;
+  console.log(123, fileStatuses);
   await getRepoDiff();
 }
 async function getStagedFiles() {
@@ -38,7 +58,6 @@ watch(repoStore, async () => {
   await getModifiedFiles();
   await getStagedFiles();
 });
-
 
 function toggleAll() {
   const falseArray = filesModifiedNames.value?.map(() => false) as boolean[];
@@ -57,8 +76,8 @@ async function add() {
   if (filesChangedToogle.value) {
     await invoke("add_all");
   } else {
-    const files = filesModifiedNames.value?.reduce((acc, curr, i) => {
-      const _acc = checkboxIter.value[i] ? [...acc, curr] : acc;
+    const files = filesModifiedNames.value?.reduce((acc, { fileName }, i) => {
+      const _acc = checkboxIter.value[i] ? [...acc, fileName] : acc;
       return _acc;
     }, [] as string[]);
 
@@ -74,7 +93,6 @@ async function commit() {
 
   await invoke("commit", { message: commitMessage.value });
   await getStagedFiles();
-
 }
 </script>
 
@@ -92,7 +110,10 @@ async function commit() {
     <h1 class="text-2xl">No new changes</h1>
   </main>
   <main v-else class="bg-[#0f172a] w-full p-4 text-slate-100">
-    <section v-if="filesModifiedNames.length > 0" class="flex flex-col items-start">
+    <section
+      v-if="filesModifiedNames.length > 0"
+      class="flex flex-col items-start"
+    >
       <span class="flex items-center justify-center gap-2 p-2">
         <input
           type="checkbox"
@@ -113,10 +134,11 @@ async function commit() {
         <li
           class="text-left p-2"
           v-for="(file, index) in filesModifiedNames"
-          :key="file"
+          :key="file.fileName"
         >
           <File
-            :file-name="file"
+            :file-name="file.fileName"
+            :status="file.status"
             :checked="checkboxIter[index]"
             @update:checked="(b) => updateArr(b, index)"
           />
