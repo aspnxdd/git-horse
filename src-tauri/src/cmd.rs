@@ -259,28 +259,34 @@ pub fn get_modified_files(state: AppArg) -> Result<Vec<FileStatus>, PError> {
     let mut status_options = git2::StatusOptions::new();
 
     if let Some(repo) = repo {
-        let statuses = repo
-            .statuses(Some(
-                status_options
-                    .include_ignored(false)
-                    .include_untracked(true),
-            ))
-            .unwrap();
-        let mut files = Vec::new();
-        for entry in statuses.iter() {
-            let status = entry.status();
-            println!("status: {:#?}", status);
-            if status.intersects(INTERESTING) {
-                if let Some(path) = entry.path() {
-                    files.push(FileStatus {
-                        file_name: path.to_owned(),
-                        status: status.bits(),
-                    });
+        let statuses = repo.statuses(Some(
+            status_options
+                .include_ignored(false)
+                .include_untracked(true),
+        ))?;
+
+        let files_statuses = statuses
+            .iter()
+            .filter_map(|entry| {
+                let status = entry.status();
+                println!("status: {:#?}", status);
+                if status.intersects(INTERESTING) {
+                    if let Some(path) = entry.path() {
+                        let f = FileStatus {
+                            file_name: path.to_owned(),
+                            status: status.bits(),
+                        };
+                        return Some(f);
+                    } else {
+                        return None;
+                    };
+                } else {
+                    return None;
                 }
-            }
-        }
-        println!("files {:#?}", files);
-        return Ok(files);
+            })
+            .collect();
+        println!("files_statuses {:#?}", files_statuses);
+        return Ok(files_statuses);
     }
     Err(PError::RepoNotFound)
 }
