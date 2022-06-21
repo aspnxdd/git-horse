@@ -350,10 +350,14 @@ pub fn get_staged_files(state: AppArg) -> Result<Vec<String>, PError> {
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
+        let mut index = repo.index()?;
+        for x in index.iter() {
+            println!("{:?}", std::ffi::CString::new(&x.path[..]).unwrap());
+
+        }
         let mut status_options = git2::StatusOptions::new();
         let files = repo
-            .statuses(Some(status_options.include_ignored(false)))
-            .unwrap()
+            .statuses(Some(status_options.include_ignored(false)))?
             .iter()
             .map(|s| s.path().unwrap().to_owned())
             .collect();

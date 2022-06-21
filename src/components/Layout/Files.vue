@@ -2,7 +2,7 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { File } from "./index";
 import { useRepoStore } from "../../stores";
-import { GitStatus, Replace } from "../../types";
+import { GitStatus, Replace } from "@types";
 interface RepoDiffStats {
   deletions: number;
   filesChanged: number;

@@ -14,6 +14,7 @@
     "lib": ["esnext", "dom"],
     "skipLibCheck": true,
     "baseUrl": ".",
+    "allowJs": true,
     "paths": {
       "@components/Layout": ["src/components/Layout/index.ts"],
       "@stores": ["src/stores/index.ts"],

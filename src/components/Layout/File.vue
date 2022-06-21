@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { GitStatus } from "../../types";
+import { GitStatus } from "@types";
 import type { PropType } from "vue";
 
 interface Emits {

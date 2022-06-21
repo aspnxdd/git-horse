@@ -13,7 +13,9 @@ export default defineConfig({
   clearScreen: false,
   plugins: [
     vue(),
-    tsconfigPaths(),
+    tsconfigPaths({
+      extensions: [".vue", ".js", ".ts"],
+    }),
     AutoImport({
       imports: ["vue"],
       dts: "./src/auto-imports.d.ts",
