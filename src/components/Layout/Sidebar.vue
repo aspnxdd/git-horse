@@ -2,6 +2,7 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/dialog";
 import { useRepoStore } from "../../stores/index";
+
 const activeBranchName = ref<null | string>(null);
 const repoName = ref<null | string>(null);
 const localBranchesNames = ref<null | string[]>(null);
@@ -43,19 +44,26 @@ async function fetchRemote() {
 
 <template>
   <nav
-    class="relative left-0 top-0 h-screen bg-blue-900 w-52 flex flex-col text-white"
+    class="relative left-0 top-0 h-screen bg-blue-900 w-60 flex flex-col text-white"
   >
+    <h1 class="font-bold text-xl flex justify-center items-center gap-3 my-4">
+      <v-icon name="gi-horse-head" scale="1.5" /> Git Horse
+    </h1>
     <h1 class="font-semibold">Current repository</h1>
+
     <span class="font-semibold text-slate-400">{{ repoName || "-" }}</span>
     <button
-      class="text-black bg-slate-50 m-2 rounded-md font-bold hover:bg-slate-300 transition-colors duration-150 ease-in-out"
+      class="text-black bg-slate-50 m-2 rounded-md font-bold hover:bg-slate-300 transition-colors duration-150 ease-in-out mx-4 p-1"
       @click="openRepo"
     >
-      Open repo
+      <span class="flex relative  gap-3">
+        <i class="left-0">
+          <v-icon fill="black" name="hi-folder-open" scale="1.2" />
+        </i>
+        <p>Open repo</p>
+      </span>
     </button>
-    <button @click="getRemotes">Get remotes</button>
-    <button @click="fetchRemote">Fetch remote</button>
-    <div class="bg-blue-700 m-2 rounded-md" v-if="repoName">
+    <div class="bg-indigo-700 m-2 rounded-md mx-4" v-if="repoName">
       <h1 class="font-semibold text-left p-2">Active branches</h1>
       <hr class="border-b-[1px] mx-4 mb-1" />
 
@@ -85,11 +93,33 @@ async function fetchRemote() {
           {{ branch }}
           <strong
             class="hover:text-slate-300 transition-colors duration-150 ease-in-out cursor-default"
-            >>></strong
+            ><v-icon name="hi-solid-chevron-double-right" /></strong
           >
         </div>
       </div>
     </div>
+    <button
+      class="text-black bg-slate-50 m-2 rounded-md font-bold hover:bg-slate-300 transition-colors duration-150 ease-in-out mx-4 p-1"
+      @click="fetchRemote"
+    >
+      <span class="flex relative  gap-3">
+        <i class="left-0">
+          <v-icon fill="black" name="hi-cloud-download" scale="1.2" />
+        </i>
+        <p>Fetch</p>
+      </span>
+    </button>
+    <button
+      class="text-black bg-slate-50 m-2 rounded-md font-bold hover:bg-slate-300 transition-colors duration-150 ease-in-out mx-4 p-1"
+      @click="fetchRemote"
+    >
+      <span class="flex relative  gap-3">
+        <i class="left-0">
+          <v-icon fill="black" name="hi-cloud-upload" scale="1.2" />
+        </i>
+        <p>Push</p>
+      </span>
+    </button>
   </nav>
 </template>
 

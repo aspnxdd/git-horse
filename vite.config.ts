@@ -6,6 +6,9 @@ import { resolve } from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  optimizeDeps: {
+    exclude: ["oh-vue-icons/icons"]
+  },
   clearScreen: false,
   plugins: [
     vue(),
