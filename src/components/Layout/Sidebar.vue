@@ -2,21 +2,33 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/dialog";
 import { useRepoStore } from "../../stores/index";
+import { Search } from "@components/Modal";
+import { Repos } from "@types";
 
 const activeBranchName = ref<null | string>(null);
 const repoName = ref<null | string>(null);
 const localBranchesNames = ref<null | string[]>(null);
 const remoteBranchesNames = ref<null | string[]>(null);
+const modalOpen = ref(false);
 
 const repoStore = useRepoStore();
+
 async function openRepo() {
   const selected = await open({
     directory: true,
     multiple: false,
   });
   await invoke("open", { path: selected });
+
   await resfreshBranches();
   repoName.value = await invoke("get_repo_name");
+  await invoke("db_insert", {
+    key: repoName.value,
+    value: selected,
+  });
+  await invoke("write_last_opened_repo", {
+    key: repoName.value,
+  });
   repoStore.setRepo(repoName.value as string);
 }
 async function resfreshBranches() {
@@ -39,12 +51,24 @@ async function fetchRemote() {
   await invoke("fetch_remote");
   await resfreshBranches();
 }
+
+onMounted(() => {
+  document.addEventListener("keydown", (e) => {
+    if (e.code == "KeyK" && e.ctrlKey) {
+      modalOpen.value = true;
+    }
+  });
+});
 </script>
 
 <template>
   <nav
     class="relative left-0 top-0 h-screen bg-blue-900 w-60 flex flex-col text-white"
   >
+    <Search
+      :modalOpen="modalOpen"
+      @close:modal="modalOpen = false"
+    />
     <h1 class="font-bold text-xl flex justify-center items-center gap-3 my-4">
       <v-icon name="gi-horse-head" scale="1.5" /> Git Horse
     </h1>
@@ -55,13 +79,25 @@ async function fetchRemote() {
       class="text-black bg-slate-50 m-2 rounded-md font-bold hover:bg-slate-300 transition-colors duration-150 ease-in-out mx-4 p-1"
       @click="openRepo"
     >
-      <span class="flex relative  gap-3">
+      <span class="flex relative gap-3">
         <i class="left-0">
           <v-icon fill="black" name="hi-folder-open" scale="1.2" />
         </i>
         <p>Open repo</p>
       </span>
     </button>
+    <button
+      class="text-black bg-slate-50 m-2 rounded-md font-bold hover:bg-slate-300 transition-colors duration-150 ease-in-out mx-4 p-1"
+      @click="modalOpen = true"
+    >
+      <span class="flex relative gap-3">
+        <i class="left-0">
+          <v-icon fill="black" name="hi-search" scale="1.2" />
+        </i>
+        <p>Search</p>
+      </span>
+    </button>
+
     <div class="bg-indigo-700 m-2 rounded-md mx-4" v-if="repoName">
       <h1 class="font-semibold text-left p-2">Active branches</h1>
       <hr class="border-b-[1px] mx-4 mb-1" />
@@ -92,16 +128,17 @@ async function fetchRemote() {
           {{ branch }}
           <strong
             class="hover:text-slate-300 transition-colors duration-150 ease-in-out cursor-default"
-            ><v-icon name="hi-solid-chevron-double-right" /></strong
-          >
+            ><v-icon name="hi-solid-chevron-double-right"
+          /></strong>
         </div>
       </div>
     </div>
+
     <button
       class="text-black bg-slate-50 m-2 rounded-md font-bold hover:bg-slate-300 transition-colors duration-150 ease-in-out mx-4 p-1"
       @click="fetchRemote"
     >
-      <span class="flex relative  gap-3">
+      <span class="flex relative gap-3">
         <i class="left-0">
           <v-icon fill="black" name="hi-cloud-download" scale="1.2" />
         </i>
@@ -112,7 +149,7 @@ async function fetchRemote() {
       class="text-black bg-slate-50 m-2 rounded-md font-bold hover:bg-slate-300 transition-colors duration-150 ease-in-out mx-4 p-1"
       @click="fetchRemote"
     >
-      <span class="flex relative  gap-3">
+      <span class="flex relative gap-3">
         <i class="left-0">
           <v-icon fill="black" name="hi-cloud-upload" scale="1.2" />
         </i>

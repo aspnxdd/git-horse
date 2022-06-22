@@ -11,6 +11,8 @@ mod error;
 mod git;
 mod menu;
 mod state;
+mod db;
+
 #[tauri::command]
 fn backend_add(number: i32) -> i32 {
     println!("Backend was called with an argument: {}", number);
@@ -34,7 +36,13 @@ fn main() {
             cmd::commit,
             cmd::add_all,
             cmd::add,
-            cmd::get_staged_files
+            cmd::get_staged_files,
+            cmd::db_get,
+            cmd::db_get_all,
+            cmd::db_insert,
+            cmd::db_remove,
+            cmd::write_last_opened_repo,
+            cmd::read_last_opened_repo,
         ])
         .menu(menu::Menu::new())
         .on_menu_event(|event| {

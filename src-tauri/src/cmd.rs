@@ -7,7 +7,8 @@ use std::path::Path;
 use std::str;
 use tauri::{command, App};
 
-use crate::error::PError;
+use crate::db;
+use crate::error::{PError, SledError};
 use crate::git;
 use crate::state::AppArg;
 
@@ -26,6 +27,7 @@ const INTERESTING_STAGED: git2::Status = git2::Status::from_bits_truncate(
 );
 #[command]
 pub fn open(state: AppArg, path: &str) -> Result<String, PError> {
+    println!("path = {}", path);
     match git::Repo::open(path) {
         Ok(repo) => {
             let mut handle = state.repo.lock().unwrap();
@@ -434,4 +436,46 @@ pub fn commit(state: AppArg, message: String) -> Result<(), PError> {
         return Ok(());
     }
     Err(PError::RepoNotFound)
+}
+
+#[command]
+pub fn db_insert(key: Option<String>, value: Option<String>) -> Result<(), SledError> {
+    let db = db::Db::new()?;
+    db.insert(key.unwrap().as_str(), value.unwrap().as_str())?;
+    return Ok(());
+}
+
+#[command]
+pub fn db_get(key: Option<String>) -> Result<String, SledError> {
+    let db = db::Db::new()?;
+    let res = db.get(key.unwrap().as_str())?;
+    Ok(res)
+}
+
+#[command]
+pub fn db_remove(key: Option<String>) -> Result<(), SledError> {
+    let db = db::Db::new()?;
+    db.remove(key.unwrap().as_str())?;
+    return Ok(());
+}
+
+#[command]
+pub fn db_get_all() -> Result<Vec<db::Repo>, SledError> {
+    let db = db::Db::new()?;
+    let res = db.get_all()?;
+    return Ok(res);
+}
+
+#[command]
+pub fn write_last_opened_repo(key: Option<String>) -> Result<(), SledError> {
+    let db = db::Db::new()?;
+    let res = db.write_last_opened_repo(key.unwrap().as_str())?;
+    return Ok(res);
+}
+
+#[command]
+pub fn read_last_opened_repo(key: Option<String>) -> Result<String, SledError> {
+    let db = db::Db::new()?;
+    let res = db.read_last_opened_repo()?;
+    return Ok(res);
 }

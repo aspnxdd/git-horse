@@ -8,3 +8,8 @@ export enum GitStatus {
 export type Replace<T, U extends string | number | symbol, V> = Omit<T, U> & {
   [K in U]: V;
 };
+
+export interface Repos {
+  path: string;
+  name: string;
+}

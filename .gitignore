@@ -25,6 +25,8 @@ dist-ssr
 
 .vscode
 src-tauri/target
-
+src-tauri/db*
 .env
 LOCAL_NOTES.md
+
+

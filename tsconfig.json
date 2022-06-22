@@ -17,6 +17,7 @@
     "allowJs": true,
     "paths": {
       "@components/Layout": ["src/components/Layout/index.ts"],
+      "@components/Modal": ["src/components/Modal/index.ts"],
       "@stores": ["src/stores/index.ts"],
       "@lib/*": ["src/lib/*"],
       "@types":["src/types.ts"]
