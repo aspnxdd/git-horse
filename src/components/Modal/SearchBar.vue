@@ -3,13 +3,25 @@ import { PropType } from "vue";
 import { Repos } from "@types";
 import { invoke } from "@tauri-apps/api/tauri";
 import { useRepoStore } from "@stores";
+import { debounce } from "@utils";
+
+defineProps({
+  modalOpen: {
+    type: Boolean,
+    default: false,
+  },
+  allRepos: {
+    type: Array as PropType<Repos[]>,
+    default: null,
+  },
+});
 
 const allRepos = ref<Repos[]>([]);
 const allReposFiltered = ref<Repos[]>([]);
 
 const repoStore = useRepoStore();
 
-function filterRepos(query: string) {
+function queryFn(query: string) {
   if (query == "") {
     allReposFiltered.value = [];
     return;
@@ -23,17 +35,11 @@ function filterRepos(query: string) {
   });
   return;
 }
+const filterReposDebounced = debounce(queryFn, 300);
 
-defineProps({
-  modalOpen: {
-    type: Boolean,
-    default: false,
-  },
-  allRepos: {
-    type: Array as PropType<Repos[]>,
-    default: null,
-  },
-});
+function filterReposHandler(query: string) {
+  query == "" ? queryFn(query) : filterReposDebounced(query);
+}
 
 interface Emits {
   (e: "close:modal", open: boolean): void;
@@ -42,15 +48,14 @@ const emits = defineEmits<Emits>();
 
 function handleModal(e: MouseEvent) {
   if ((e.target as HTMLDivElement).nodeName === "DIV") {
-    allReposFiltered.value = [];
     closeModal();
   }
 }
 
 function closeModal() {
+  allReposFiltered.value = [];
   emits("close:modal", false);
 }
-
 
 function selectRepo(path: string) {
   repoStore.setRepo(path);
@@ -86,7 +91,7 @@ onUpdated(async () => {
             autofocus
             placeholder="Type * to show all repos..."
             class="w-full h-full p-5 text-xl outline-white"
-            @input="(e)=>filterRepos((e.target as HTMLInputElement).value)"
+            @input="(e)=>filterReposHandler((e.target as HTMLInputElement).value)"
           />
         </span>
 
@@ -125,55 +130,5 @@ onUpdated(async () => {
   border-radius: 1rem;
   height: max(30%, 10rem);
   box-shadow: 5px 5px 5px rgb(0 0 0 / 0.3);
-}
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.5s ease;
-}
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-}
-
-.hamb {
-  animation: slide-right 300ms ease-in-out forwards;
-  animation-delay: 200ms;
-  animation-iteration-count: 1;
-}
-.line {
-  transition: transform 300ms ease-in-out;
-}
-.line:nth-child(1) {
-  background-color: #800080;
-  display: block;
-  width: 40px;
-  height: 3px;
-  transform: rotate(45deg) translateY(10px) translateX(-4px);
-
-  margin-block: 10px;
-}
-.line:nth-child(2) {
-  background-color: #800080;
-  display: block;
-  width: 40px;
-  height: 3px;
-  margin-block: 10px;
-  transform: rotate(-45deg) translateY(-13px);
-}
-.hamb:hover .line:nth-child(2) {
-  transform: rotate(0deg) translateY(-13px) translateX(-10px) scaleX(0.8);
-}
-.hamb:hover .line:nth-child(1) {
-  transform: rotate(0deg) translateY(-0px) translateX(-10px) scaleX(0.8);
 }
 </style>

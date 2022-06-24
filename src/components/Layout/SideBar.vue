@@ -72,7 +72,7 @@ onMounted(() => {
 
 <template>
   <nav
-    class="relative left-0 top-0 h-screen bg-blue-900 w-60 flex flex-col text-white"
+    class="relative left-0 top-0 h-screen w-60 flex flex-col text-white cursor-default"
   >
     <SearchBar :modal-open="modalOpen" @close:modal="modalOpen = false" />
     <h1 class="font-bold text-xl flex justify-center items-center gap-3 my-4">
@@ -80,7 +80,7 @@ onMounted(() => {
     </h1>
     <h1 class="font-semibold">Current repository</h1>
 
-    <span class="font-semibold text-slate-400">{{ repoName || "-" }}</span>
+    <span class="font-bold text-slate-200 text-lg">{{ repoName || "-" }}</span>
     <button
       class="text-black bg-slate-50 m-2 rounded-md font-bold hover:bg-slate-300 transition-colors duration-150 ease-in-out mx-4 p-1"
       @click="handleOpenFile"
@@ -104,7 +104,7 @@ onMounted(() => {
       </span>
     </button>
 
-    <div v-if="repoName" class="bg-indigo-700 m-2 rounded-md mx-4">
+    <div v-if="repoName" class="bg-indigo-500 m-2 rounded-md mx-4">
       <h1 class="font-semibold text-left p-2">Active branches</h1>
       <hr class="border-b-[1px] mx-4 mb-1" />
 
@@ -115,8 +115,8 @@ onMounted(() => {
       >
         <div
           as="button"
-          :class="{ 'bg-sky-600': branch === activeBranchName }"
-          class="text-black hover:text-slate-300 transition-colors duration-150 ease-in-out cursor-default font-semibold pl-2"
+          class="text-black  transition-colors duration-150 ease-in-out cursor-default font-semibold pl-2"
+          :class="{ 'bg-pink-300': branch === activeBranchName, 'hover:text-slate-100': branch !== activeBranchName }"
           @click="checkoutBranch(branch)"
         >
           {{ branch }}
@@ -166,19 +166,12 @@ onMounted(() => {
 </template>
 
 <style scoped>
-a {
-  color: #42b983;
-}
-
-label {
-  margin: 0 0.5em;
-  font-weight: bold;
-}
-
-code {
-  background-color: #eee;
-  padding: 2px 4px;
-  border-radius: 4px;
-  color: #304455;
+nav {
+  background: rgb(8, 8, 111);
+  background: linear-gradient(
+    45deg,
+    rgba(8, 8, 111, 1) 0%,
+    rgba(46, 107, 227, 1) 100%
+  );
 }
 </style>

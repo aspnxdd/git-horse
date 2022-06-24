@@ -25,7 +25,7 @@ const props = defineProps({
   },
 });
 function getStatusColor(status: GitStatus) {
-  console.log("status color",status)
+  console.log("status color", status);
   if (status == "Modified") return "text-[#b57219]";
   if (status == GitStatus.New) return "text-[#22a81b]";
   if (status == GitStatus.Deleted) return "text-[#bf1b1b]";
@@ -40,12 +40,11 @@ const colorStatus = getStatusColor(props.status);
     <span :class="`${colorStatus} left-0 mr-2 font-bold`"
       >[{{ status.charAt(0) }}]</span
     >
-
     <input
-      type="checkbox"
       :id="fileName"
-      class="accent-pink-500"
       :ref="fileName"
+      type="checkbox"
+      class="accent-pink-500"
       :checked="props.checked"
       @input="(event)=>updateChecked((event.target as HTMLInputElement).checked)"
     />
@@ -53,20 +52,4 @@ const colorStatus = getStatusColor(props.status);
   </div>
 </template>
 
-<style scoped>
-a {
-  color: #42b983;
-}
-
-label {
-  margin: 0 0.5em;
-  font-weight: bold;
-}
-
-code {
-  background-color: #eee;
-  padding: 2px 4px;
-  border-radius: 4px;
-  color: #304455;
-}
-</style>
+<style scoped></style>

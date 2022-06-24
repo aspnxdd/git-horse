@@ -1,14 +1,12 @@
 use git2::BranchType;
-use git2::{AutotagOption, FetchOptions, RemoteCallbacks, Repository};
+use git2::{AutotagOption, FetchOptions, RemoteCallbacks};
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, DisplayFromStr};
 use std::io::{self, Write};
-use std::path::Path;
 use std::str;
-use tauri::{command, App};
+use tauri::{command};
 
 use crate::db;
-use crate::error::{PError, SledError};
+use crate::error::{GitError, SledError};
 use crate::git;
 use crate::state::AppArg;
 
@@ -26,12 +24,11 @@ const INTERESTING_STAGED: git2::Status = git2::Status::from_bits_truncate(
         | git2::Status::INDEX_TYPECHANGE.bits(),
 );
 #[command]
-pub fn open(state: AppArg, path: &str) -> Result<String, PError> {
+pub fn open(state: AppArg, path: &str) -> Result<String, GitError> {
     println!("path = {}", path);
     match git::Repo::open(path) {
         Ok(repo) => {
             let mut handle = state.repo.lock().unwrap();
-
             *handle = Some(repo.repo);
             return Ok(handle
                 .as_ref()
@@ -43,7 +40,7 @@ pub fn open(state: AppArg, path: &str) -> Result<String, PError> {
         }
         Err(e) => {
             println!("{:#?}", e);
-            return Err(PError::RepoNotFound);
+            return Err(GitError::RepoNotFound);
         }
     }
 }
@@ -55,7 +52,7 @@ pub enum MyBranchType {
 }
 
 #[command]
-pub fn find_branches(state: AppArg, filter: Option<MyBranchType>) -> Result<Vec<String>, PError> {
+pub fn find_branches(state: AppArg, filter: Option<MyBranchType>) -> Result<Vec<String>, GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref().unwrap();
@@ -78,13 +75,13 @@ pub fn find_branches(state: AppArg, filter: Option<MyBranchType>) -> Result<Vec<
             Ok(result)
         }
         Err(_) => {
-            return Err(PError::NoBranches);
+            return Err(GitError::NoBranches);
         }
     }
 }
 
 #[command]
-pub fn get_current_branch_name(state: AppArg) -> Result<String, PError> {
+pub fn get_current_branch_name(state: AppArg) -> Result<String, GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
@@ -94,11 +91,11 @@ pub fn get_current_branch_name(state: AppArg) -> Result<String, PError> {
         let head = head.shorthand().unwrap();
         return Ok(head.to_string());
     }
-    Err(PError::RepoNotFound)
+    Err(GitError::RepoNotFound)
 }
 
 #[command]
-pub fn get_repo_name(state: AppArg) -> Result<String, PError> {
+pub fn get_repo_name(state: AppArg) -> Result<String, GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
@@ -107,11 +104,11 @@ pub fn get_repo_name(state: AppArg) -> Result<String, PError> {
         let repo_name: Vec<&str> = path_name.split("/").collect();
         return Ok(repo_name[repo_name.len() - 3].to_owned());
     }
-    Err(PError::RepoNotFound)
+    Err(GitError::RepoNotFound)
 }
 
 #[command]
-pub fn checkout_branch(state: AppArg, branch_name: String) -> Result<(), PError> {
+pub fn checkout_branch(state: AppArg, branch_name: String) -> Result<(), GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
@@ -136,11 +133,11 @@ pub fn checkout_branch(state: AppArg, branch_name: String) -> Result<(), PError>
             }
         }
     }
-    Err(PError::RepoNotFound)
+    Err(GitError::RepoNotFound)
 }
 
 #[command]
-pub fn get_remotes(state: AppArg) -> Result<Vec<String>, PError> {
+pub fn get_remotes(state: AppArg) -> Result<Vec<String>, GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
@@ -152,11 +149,11 @@ pub fn get_remotes(state: AppArg) -> Result<Vec<String>, PError> {
         });
         return Ok(result);
     }
-    Err(PError::RepoNotFound)
+    Err(GitError::RepoNotFound)
 }
 
 #[command]
-pub fn fetch_remote(state: AppArg, remote: Option<String>) -> Result<(), PError> {
+pub fn fetch_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError> {
     let remote = &remote.unwrap_or("origin".to_string());
 
     let repo = state.repo.clone();
@@ -251,7 +248,7 @@ pub fn fetch_remote(state: AppArg, remote: Option<String>) -> Result<(), PError>
         remote.update_tips(None, true, AutotagOption::Unspecified, None)?;
         return Ok(());
     }
-    Err(PError::RepoNotFound)
+    Err(GitError::RepoNotFound)
 }
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -260,7 +257,7 @@ pub struct FileStatus {
     status: u32,
 }
 #[command]
-pub fn get_modified_files(state: AppArg) -> Result<Vec<FileStatus>, PError> {
+pub fn get_modified_files(state: AppArg) -> Result<Vec<FileStatus>, GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
@@ -296,7 +293,7 @@ pub fn get_modified_files(state: AppArg) -> Result<Vec<FileStatus>, PError> {
         println!("files_statuses {:#?}", files_statuses);
         return Ok(files_statuses);
     }
-    Err(PError::RepoNotFound)
+    Err(GitError::RepoNotFound)
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -306,7 +303,7 @@ pub struct Stats {
     files_changed: usize,
 }
 #[command]
-pub fn get_repo_diff(state: AppArg) -> Result<Stats, PError> {
+pub fn get_repo_diff(state: AppArg) -> Result<Stats, GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
@@ -316,12 +313,12 @@ pub fn get_repo_diff(state: AppArg) -> Result<Stats, PError> {
                 Ok(stats) => stats,
                 Err(e) => {
                     println!("get stats failed : {:?}", e);
-                    return Err(PError::GetStatsFailed);
+                    return Err(GitError::GetStatsFailed);
                 }
             },
             Err(e) => {
                 println!("get diff failed : {:?}", e);
-                return Err(PError::GetDiffFailed);
+                return Err(GitError::GetDiffFailed);
             }
         };
         let stats = Stats {
@@ -331,11 +328,11 @@ pub fn get_repo_diff(state: AppArg) -> Result<Stats, PError> {
         };
         return Ok(stats);
     }
-    Err(PError::RepoNotFound)
+    Err(GitError::RepoNotFound)
 }
 
 #[command]
-pub fn add_all(state: AppArg) -> Result<(), PError> {
+pub fn add_all(state: AppArg) -> Result<(), GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
@@ -350,10 +347,10 @@ pub fn add_all(state: AppArg) -> Result<(), PError> {
         }
         return Ok(());
     }
-    Err(PError::RepoNotFound)
+    Err(GitError::RepoNotFound)
 }
 #[command]
-pub fn get_staged_files(state: AppArg) -> Result<Vec<String>, PError> {
+pub fn get_staged_files(state: AppArg) -> Result<Vec<String>, GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
@@ -371,10 +368,10 @@ pub fn get_staged_files(state: AppArg) -> Result<Vec<String>, PError> {
             .collect();
         return Ok(files);
     }
-    Err(PError::RepoNotFound)
+    Err(GitError::RepoNotFound)
 }
 #[command]
-pub fn add(state: AppArg, files: Vec<String>) -> Result<(), PError> {
+pub fn add(state: AppArg, files: Vec<String>) -> Result<(), GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
@@ -398,11 +395,11 @@ pub fn add(state: AppArg, files: Vec<String>) -> Result<(), PError> {
         index.write()?;
         return Ok(());
     }
-    Err(PError::RepoNotFound)
+    Err(GitError::RepoNotFound)
 }
 
 #[command]
-pub fn commit(state: AppArg, message: String) -> Result<(), PError> {
+pub fn commit(state: AppArg, message: String) -> Result<(), GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
@@ -435,7 +432,7 @@ pub fn commit(state: AppArg, message: String) -> Result<(), PError> {
         head_ref.set_target(commit_id.id(), "commit")?;
         return Ok(());
     }
-    Err(PError::RepoNotFound)
+    Err(GitError::RepoNotFound)
 }
 
 #[command]

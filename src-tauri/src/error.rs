@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub enum PError {
+pub enum GitError {
     RepoNotFound,
     NoBranches,
     GetDiffFailed,
@@ -16,17 +16,17 @@ pub enum SledError {
     SledCantInsert,
 }
 
-impl std::error::Error for PError {}
+impl std::error::Error for GitError {}
 
-impl std::fmt::Display for PError {
+impl std::fmt::Display for GitError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", self)
     }
 }
 
-impl From<git2::Error> for PError {
+impl From<git2::Error> for GitError {
     fn from(err: git2::Error) -> Self {
-        PError::GitError(format!("{:#?}", err.message()))
+        GitError::GitError(format!("{:#?}", err.message()))
     }
 }
 

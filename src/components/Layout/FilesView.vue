@@ -65,7 +65,7 @@ function toggleAll() {
   checkboxIter.value = filesChangedToogle.value ? falseArray : trueArray;
 }
 function updateArr(b: boolean, index: number) {
-  checkboxIter.value[index] = b;
+  checkboxIter.value[index as number] = b;
   filesChangedToogle.value = false;
   if (checkboxIter.value.every((v) => v === true)) {
     filesChangedToogle.value = true;
@@ -77,15 +77,13 @@ async function add() {
     await invoke("add_all");
   } else {
     const files = filesModifiedNames.value?.reduce((acc, { fileName }, i) => {
-      const _acc = checkboxIter.value[i] ? [...acc, fileName] : acc;
-      return _acc;
+      return checkboxIter.value[i as number] ? [...acc, fileName] : acc;
     }, [] as string[]);
 
     await invoke("add", { files });
   }
   await getModifiedFiles();
   await getStagedFiles();
-
 }
 async function commit() {
   if (!commitMessage.value) {
@@ -101,17 +99,17 @@ async function commit() {
 <template>
   <main
     v-if="!repoStore.repo"
-    class="bg-[#0f172a] flex flex-col items-center justify-center w-full p-4 text-slate-100"
+    class="flex flex-col items-center justify-center w-full p-4 text-slate-100"
   >
     <h1 class="text-2xl">Select a repository</h1>
   </main>
   <main
     v-else-if="filesModifiedNames.length == 0 && stagedFilesNames.length == 0"
-    class="bg-[#0f172a] flex flex-col items-center justify-center w-full p-4 text-slate-100"
+    class="flex flex-col items-center justify-center w-full p-4 text-slate-100"
   >
     <h1 class="text-2xl">No new changes</h1>
   </main>
-  <main v-else class="bg-[#0f172a] w-full p-4 text-slate-100">
+  <main v-else class="w-full p-4 text-slate-100">
     <section
       v-if="filesModifiedNames.length > 0"
       class="flex flex-col items-start"
@@ -160,17 +158,13 @@ async function commit() {
         v-if="stagedFilesNames.length > 0"
         class="list-none p-2 bg-[#21325a] rounded-xl m-2"
       >
-        <li
-          v-for="(file) in stagedFilesNames"
-          :key="file"
-          class="text-left p-2"
-        >
+        <li v-for="file in stagedFilesNames" :key="file" class="text-left p-2">
           {{ file }}
         </li>
       </ul>
       <textarea
         type="text"
-        class="rounded-lg my-2 p-1 text-black h-40 text-left text-clip"
+        class="rounded-lg my-2 p-1 text-black h-40 text-left text-clip w-2/5"
         placeholder="Commit message"
         @change="(e)=>commitMessage=(e.target as HTMLTextAreaElement).value"
       />
@@ -185,19 +179,13 @@ async function commit() {
 </template>
 
 <style scoped>
-a {
-  color: #42b983;
-}
-
-label {
-  margin: 0 0.5em;
-  font-weight: bold;
-}
-
-code {
-  background-color: #eee;
-  padding: 2px 4px;
-  border-radius: 4px;
-  color: #304455;
+main {
+  background: rgb(55, 55, 149);
+  background: linear-gradient(
+    120deg,
+    rgba(55, 55, 149, 1) 0%,
+    rgba(69, 123, 229, 1) 100%
+  );
+  cursor: default;
 }
 </style>
