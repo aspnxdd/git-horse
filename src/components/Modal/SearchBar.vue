@@ -35,6 +35,7 @@ function queryFn(query: string) {
   });
   return;
 }
+
 const filterReposDebounced = debounce(queryFn, 300);
 
 function filterReposHandler(query: string) {

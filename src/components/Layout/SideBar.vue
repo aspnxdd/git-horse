@@ -40,6 +40,8 @@ async function handleOpenFile() {
 watch(repoStore, async () => {
   await openRepo(repoStore.repo);
 });
+
+
 async function resfreshBranches() {
   localBranchesNames.value = await invoke("find_branches", { filter: "Local" });
   remoteBranchesNames.value = await invoke("find_branches", {
@@ -115,8 +117,11 @@ onMounted(() => {
       >
         <div
           as="button"
-          class="text-black  transition-colors duration-150 ease-in-out cursor-default font-semibold pl-2"
-          :class="{ 'bg-pink-300': branch === activeBranchName, 'hover:text-slate-100': branch !== activeBranchName }"
+          class="text-black transition-colors duration-150 ease-in-out cursor-default font-semibold pl-2"
+          :class="{
+            'bg-pink-300': branch === activeBranchName,
+            'hover:text-slate-100': branch !== activeBranchName,
+          }"
           @click="checkoutBranch(branch)"
         >
           {{ branch }}

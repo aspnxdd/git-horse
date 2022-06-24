@@ -90,6 +90,12 @@ async function commit() {
   await invoke("commit", { message: commitMessage.value });
   await getStagedFiles();
 }
+onMounted(() => {
+  setInterval(async () => {
+    await getModifiedFiles();
+    await getStagedFiles();
+  }, 5000);
+});
 </script>
 
 <template>

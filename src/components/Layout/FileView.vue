@@ -32,6 +32,7 @@ function getStatusColor(status: GitStatus) {
   if (status == GitStatus.Unknown) return "text-[#575757]";
   return "text-[#f546fa]";
 }
+
 const colorStatus = getStatusColor(props.status);
 </script>
 
