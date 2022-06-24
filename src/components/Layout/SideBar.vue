@@ -2,7 +2,7 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/dialog";
 import { useRepoStore } from "../../stores/index";
-import { Search } from "@components/Modal";
+import { SearchBar } from "@components/Modal";
 
 const activeBranchName = ref<null | string>(null);
 const repoName = ref<null | string>(null);
@@ -74,7 +74,7 @@ onMounted(() => {
   <nav
     class="relative left-0 top-0 h-screen bg-blue-900 w-60 flex flex-col text-white"
   >
-    <Search :modal-open="modalOpen" @close:modal="modalOpen = false" />
+    <SearchBar :modal-open="modalOpen" @close:modal="modalOpen = false" />
     <h1 class="font-bold text-xl flex justify-center items-center gap-3 my-4">
       <v-icon name="gi-horse-head" scale="1.5" /> Git Horse
     </h1>
