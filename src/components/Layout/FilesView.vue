@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { useRepoStore } from "@stores";
 import { invoke } from "@tauri-apps/api/tauri";
-import { File } from "./index";
-import { useRepoStore } from "../../stores";
+import { FileView } from "./index";
 import { GitStatus, Replace } from "@types";
 interface RepoDiffStats {
   deletions: number;
@@ -138,7 +138,7 @@ async function commit() {
           :key="file.fileName"
           class="text-left p-2"
         >
-          <File
+          <FileView
             :file-name="file.fileName"
             :status="file.status"
             :checked="checkboxIter[index]"

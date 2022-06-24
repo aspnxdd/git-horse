@@ -1,13 +1,13 @@
 <script setup lang="ts">
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
-import { SideBar, Files } from "@components/Layout";
+import { SideBar, FilesView } from "@components/Layout";
 </script>
 
 <template>
   <div class="flex">
     <SideBar />
-    <Files />
+    <FilesView />
   </div>
 </template>
 

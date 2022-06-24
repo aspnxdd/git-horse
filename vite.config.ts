@@ -12,10 +12,10 @@ export default defineConfig({
   },
   clearScreen: false,
   plugins: [
-    vue(),
     tsconfigPaths({
       extensions: [".vue", ".js", ".ts"],
     }),
+    vue(),
     AutoImport({
       imports: ["vue"],
       dts: "./src/auto-imports.d.ts",

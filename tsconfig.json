@@ -1,5 +1,13 @@
 {
   "compilerOptions": {
+    "paths": {
+      "@components/Layout": ["src/components/Layout/index.ts"],
+      "@components/Modal": ["src/components/Modal/index.ts"],
+      "@stores": ["src/stores/index.ts"],
+      "@lib/*": ["src/lib/*"],
+      "@types": ["src/types.ts"]
+    },
+    "baseUrl": ".",
     "target": "esnext",
     "useDefineForClassFields": true,
     "module": "esnext",
@@ -13,17 +21,9 @@
     "allowSyntheticDefaultImports": true,
     "lib": ["esnext", "dom"],
     "skipLibCheck": true,
-    "baseUrl": ".",
-    "allowJs": true,
-    "paths": {
-      "@components/Layout": ["src/components/Layout/index.ts"],
-      "@components/Modal": ["src/components/Modal/index.ts"],
-      "@stores": ["src/stores/index.ts"],
-      "@lib/*": ["src/lib/*"],
-      "@types":["src/types.ts"]
-    }
+    "allowJs": true
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
+  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.d.ts", "src/**/*.vue"],
   "references": [{ "path": "./tsconfig.node.json" }],
   "exclude": ["node_modules", "dist", "public"]
 }

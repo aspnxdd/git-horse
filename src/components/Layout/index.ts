@@ -1,3 +1,3 @@
 export { default as SideBar } from "./SideBar.vue";
-export { default as Files } from "./Files.vue";
-export { default as File } from "./File.vue";
+export { default as FilesView } from "./FilesView.vue";
+export { default as FileView } from "./FileView.vue";

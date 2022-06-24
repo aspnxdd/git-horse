@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { useRepoStore } from "@stores";
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/dialog";
-import { useRepoStore } from "@stores";
 import { SearchBar } from "@components/Modal";
 
 const activeBranchName = ref<null | string>(null);
