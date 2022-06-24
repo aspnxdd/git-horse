@@ -41,7 +41,10 @@ interface Emits {
 const emits = defineEmits<Emits>();
 
 function handleModal(e: MouseEvent) {
-  if ((e.target as HTMLDivElement).nodeName === "DIV") closeModal();
+  if ((e.target as HTMLDivElement).nodeName === "DIV") {
+    allReposFiltered.value = [];
+    closeModal();
+  }
 }
 
 function closeModal() {
@@ -66,37 +69,37 @@ onUpdated(async () => {
       class="flex w-full h-full fixed overflow-auto bg-slate-900 bg-opacity-60 text-black z-10"
       @click="handleModal"
     >
-        <section
-          class="bg-white absolute  flex justify-center flex-col items-center w-2/4 rounded-xl   shadow-xl p-1 top-10 left-1/4"
+      <section
+        class="bg-white absolute flex justify-center flex-col items-center w-2/4 rounded-xl shadow-xl p-1 top-10 left-1/4"
+      >
+        <span class="flex justify-center items-center w-full h-full">
+          <v-icon
+            fill="black"
+            name="hi-search"
+            scale="1.3"
+            class="border-0 ml-6"
+          />
+
+          <input
+            id="search"
+            autofocus
+            placeholder="Type * to show all repos..."
+            class="w-full h-full p-5 text-xl outline-white"
+            @input="(e)=>filterRepos((e.target as HTMLInputElement).value)"
+          />
+        </span>
+
+        <!-- <TransitionGroup name="list"> -->
+        <li
+          v-for="repo in allReposFiltered"
+          :key="repo.name"
+          class="text-xl border-b-2 border-gray-400 p-2 w-full h-full flex justify-center items-center bg-white sticky overflow-hidden search-results cursor-pointer"
+          @click="() => selectRepo(repo.path)"
         >
-          <span class="flex justify-center items-center w-full h-full">
-            <v-icon
-              fill="black"
-              name="hi-search"
-              scale="1.3"
-              class="border-0 ml-6"
-            />
-
-            <input
-              id="search"
-              autofocus
-              placeholder="Type * to show all repos..."
-              class="w-full h-full p-5 text-xl outline-white"
-              @input="(e)=>filterRepos((e.target as HTMLInputElement).value)"
-            />
-          </span>
-
-          <!-- <TransitionGroup name="list"> -->
-          <li
-            v-for="repo in allReposFiltered"
-            :key="repo.name"
-            class="text-xl border-b-2 border-gray-400 p-2 w-full h-full flex justify-center items-center bg-white sticky overflow-hidden search-results"
-            @click="() => selectRepo(repo.path)"
-          >
-            {{ repo.name }}
-          </li>
-          <!-- </TransitionGroup> -->
-        </section>
+          {{ repo.name }}
+        </li>
+        <!-- </TransitionGroup> -->
+      </section>
     </div>
   </Transition>
 </template>

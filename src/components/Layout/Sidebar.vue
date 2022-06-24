@@ -98,9 +98,9 @@ onMounted(() => {
     >
       <span class="flex relative gap-3">
         <i class="left-0">
-          <v-icon fill="black" name="hi-search" scale="1.2" />
+          <v-icon fill="black" name="hi-view-grid" scale="1.2" />
         </i>
-        <p>Search</p>
+        <p>Recent</p>
       </span>
     </button>
 
