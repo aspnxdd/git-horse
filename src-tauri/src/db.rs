@@ -12,8 +12,13 @@ pub struct Repo {
 }
 impl Db {
     pub fn new() -> Result<Self, SledError> {
-        let path = std::path::Path::new("db_sled");
-        let db = sled::open(path)?;
+        let dir = std::env::current_dir().unwrap();
+        let dir = dir.to_str().unwrap();
+        let mut dir: Vec<&str> = dir.split("\\").collect();
+        dir.pop().unwrap();
+        let dir = dir.join("/");
+        let dir = format!("{}/{}", dir, "tmp/db");
+        let db = sled::open(dir)?;
         Ok(Db { db })
     }
     pub fn write_last_opened_repo(&self, repo: &str) -> Result<(), SledError> {

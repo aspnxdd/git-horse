@@ -476,7 +476,7 @@ pub fn write_last_opened_repo(key: Option<String>) -> Result<(), SledError> {
 }
 
 #[command]
-pub fn read_last_opened_repo(key: Option<String>) -> Result<String, SledError> {
+pub fn read_last_opened_repo() -> Result<String, SledError> {
     let db = db::Db::new()?;
     let res = db.read_last_opened_repo()?;
     return Ok(res);
