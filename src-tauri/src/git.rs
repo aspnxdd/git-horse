@@ -10,7 +10,7 @@ impl Repo {
         Repo { repo }
     }
     pub fn open(path: &str) -> Result<Self, git2::Error> {
-        let repo = Repository::open(path)?;
+        let repo = Repository::discover(path)?;
         Ok(Repo { repo })
     }
 }
