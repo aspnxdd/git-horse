@@ -61,11 +61,11 @@ function selectRepo(path: string) {
   repoStore.setRepo(path);
   closeModal();
 }
-onUpdated(async () => {
+async function populateRepos() {
   const res = await invoke<Repos[]>("db_get_all");
   allRepos.value = res.filter((repo) => repo.name !== "last_opened_repo");
-  console.log("allRepos:", allRepos.value);
-});
+}
+onUpdated(populateRepos);
 </script>
 
 <template>
@@ -95,7 +95,6 @@ onUpdated(async () => {
           />
         </span>
 
-        <!-- <TransitionGroup name="list"> -->
         <li
           v-for="repo in allReposFiltered"
           :key="repo.name"
@@ -104,7 +103,6 @@ onUpdated(async () => {
         >
           {{ repo.name }}
         </li>
-        <!-- </TransitionGroup> -->
       </section>
     </div>
   </Transition>

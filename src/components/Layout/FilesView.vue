@@ -25,7 +25,10 @@ const repoDiffStats = ref<RepoDiffStats>({
   filesChanged: 0,
   insertions: 0,
 });
-
+watch(repoStore, async () => {
+  await getModifiedFiles();
+  await getStagedFiles();
+});
 function getGitStatus(status: number) {
   if (status === 256) return GitStatus.Modified;
   if (status === 512) return GitStatus.Deleted;
@@ -35,7 +38,6 @@ function getGitStatus(status: number) {
 
 async function getModifiedFiles() {
   const res = await invoke<FileStatus[]>("get_modified_files");
-  console.log("get_modified_files", res);
   const fileStatuses = res.map((i) => {
     return {
       fileName: i.fileName,
@@ -47,23 +49,18 @@ async function getModifiedFiles() {
   await getRepoDiff();
 }
 async function getStagedFiles() {
-  const res = await invoke<string[]>("get_staged_files");
-  console.log("get_staged_files", res);
-  stagedFilesNames.value = res;
+  stagedFilesNames.value = await invoke<string[]>("get_staged_files");
 }
 async function getRepoDiff() {
   repoDiffStats.value = await invoke<RepoDiffStats>("get_repo_diff");
 }
-watch(repoStore, async () => {
-  await getModifiedFiles();
-  await getStagedFiles();
-});
 
 function toggleAll() {
   const falseArray = filesModifiedNames.value?.map(() => false) as boolean[];
   const trueArray = filesModifiedNames.value?.map(() => true) as boolean[];
   checkboxIter.value = filesChangedToogle.value ? falseArray : trueArray;
 }
+
 function updateArr(b: boolean, index: number) {
   checkboxIter.value[index as number] = b;
   filesChangedToogle.value = false;
@@ -90,7 +87,6 @@ async function commit() {
     alert("Please enter commit message");
     return;
   }
-
   await invoke("commit", { message: commitMessage.value });
   await getStagedFiles();
 }

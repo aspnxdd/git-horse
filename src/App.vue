@@ -1,5 +1,15 @@
 <script setup lang="ts">
 import { SideBar, FilesView } from "@components/Layout";
+import { invoke } from "@tauri-apps/api/tauri";
+import { useRepoStore } from "@stores";
+
+const repoStore = useRepoStore();
+
+onMounted(async () => {
+  const res = await invoke<string>("read_last_opened_repo");
+  console.log("res:", res);
+  repoStore.setRepo(res);
+});
 </script>
 
 <template>
