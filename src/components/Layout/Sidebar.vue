@@ -31,6 +31,7 @@ async function handleOpenFile() {
     directory: true,
     multiple: false,
   })) as string;
+  console.log("file:", file);
   if (file) {
     openRepo(file);
   }
@@ -73,7 +74,7 @@ onMounted(() => {
   <nav
     class="relative left-0 top-0 h-screen bg-blue-900 w-60 flex flex-col text-white"
   >
-    <Search :modalOpen="modalOpen" @close:modal="modalOpen = false" />
+    <Search :modal-open="modalOpen" @close:modal="modalOpen = false" />
     <h1 class="font-bold text-xl flex justify-center items-center gap-3 my-4">
       <v-icon name="gi-horse-head" scale="1.5" /> Git Horse
     </h1>
@@ -103,29 +104,29 @@ onMounted(() => {
       </span>
     </button>
 
-    <div class="bg-indigo-700 m-2 rounded-md mx-4" v-if="repoName">
+    <div v-if="repoName" class="bg-indigo-700 m-2 rounded-md mx-4">
       <h1 class="font-semibold text-left p-2">Active branches</h1>
       <hr class="border-b-[1px] mx-4 mb-1" />
 
       <div
-        class="list-none text-left w-full"
         v-for="branch in localBranchesNames"
         :key="branch"
+        class="list-none text-left w-full"
       >
         <div
           as="button"
-          @click="checkoutBranch(branch)"
-          class="text-black hover:text-slate-300 transition-colors duration-150 ease-in-out cursor-default font-semibold pl-2"
           :class="{ 'bg-sky-600': branch === activeBranchName }"
+          class="text-black hover:text-slate-300 transition-colors duration-150 ease-in-out cursor-default font-semibold pl-2"
+          @click="checkoutBranch(branch)"
         >
           {{ branch }}
         </div>
       </div>
       <h1 class="font-semibold text-left p-2">Remote branches</h1>
       <div
-        class="list-none text-left w-full"
         v-for="branch in remoteBranchesNames"
         :key="branch"
+        class="list-none text-left w-full"
       >
         <div
           class="text-black cursor-default font-semibold pl-2 flex justify-between pr-1"

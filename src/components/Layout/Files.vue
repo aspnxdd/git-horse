@@ -100,14 +100,14 @@ async function commit() {
 
 <template>
   <main
-    class="bg-[#0f172a] flex flex-col items-center justify-center w-full p-4 text-slate-100"
     v-if="!repoStore.repo"
+    class="bg-[#0f172a] flex flex-col items-center justify-center w-full p-4 text-slate-100"
   >
     <h1 class="text-2xl">Select a repository</h1>
   </main>
   <main
-    class="bg-[#0f172a] flex flex-col items-center justify-center w-full p-4 text-slate-100"
     v-else-if="filesModifiedNames.length == 0 && stagedFilesNames.length == 0"
+    class="bg-[#0f172a] flex flex-col items-center justify-center w-full p-4 text-slate-100"
   >
     <h1 class="text-2xl">No new changes</h1>
   </main>
@@ -134,9 +134,9 @@ async function commit() {
       </div>
       <ul class="list-none p-2 bg-[#21325a] rounded-xl m-2">
         <li
-          class="text-left p-2"
           v-for="(file, index) in filesModifiedNames"
           :key="file.fileName"
+          class="text-left p-2"
         >
           <File
             :file-name="file.fileName"
@@ -147,8 +147,8 @@ async function commit() {
         </li>
       </ul>
       <button
-        @click="add"
         class="px-4 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
+        @click="add"
       >
         Add
       </button>
@@ -157,13 +157,13 @@ async function commit() {
     <section class="flex flex-col items-start">
       <h1 class="font-bold text-lg">Staged changes:</h1>
       <ul
-        class="list-none p-2 bg-[#21325a] rounded-xl m-2"
         v-if="stagedFilesNames.length > 0"
+        class="list-none p-2 bg-[#21325a] rounded-xl m-2"
       >
         <li
-          class="text-left p-2"
-          v-for="(file, index) in stagedFilesNames"
+          v-for="(file) in stagedFilesNames"
           :key="file"
+          class="text-left p-2"
         >
           {{ file }}
         </li>
@@ -175,8 +175,8 @@ async function commit() {
         @change="(e)=>commitMessage=(e.target as HTMLTextAreaElement).value"
       />
       <button
-        @click="commit"
         class="px-4 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
+        @click="commit"
       >
         Commit to {{ repoStore.activeBranch }}
       </button>

@@ -63,12 +63,11 @@ onUpdated(async () => {
   <Transition name="fade">
     <div
       v-if="modalOpen"
-      class="flex w-full h-full fixed overflow-auto bg-slate-900 bg-opacity-60 text-black"
+      class="flex w-full h-full fixed overflow-auto bg-slate-900 bg-opacity-60 text-black z-10"
       @click="handleModal"
     >
-      <div class="flex flex-col justify-center items-center w-full h-full">
         <section
-          class="bg-white absolute overflow-hidden flex flex-col items-center w-2/4 rounded-xl h-max m-auto shadow-xl top-16 left-1/3"
+          class="bg-white absolute  flex justify-center flex-col items-center w-2/4 rounded-xl   shadow-xl p-1 top-10 left-1/4"
         >
           <span class="flex justify-center items-center w-full h-full">
             <v-icon
@@ -79,8 +78,8 @@ onUpdated(async () => {
             />
 
             <input
-              autofocus
               id="search"
+              autofocus
               placeholder="Type * to show all repos..."
               class="w-full h-full p-5 text-xl outline-white"
               @input="(e)=>filterRepos((e.target as HTMLInputElement).value)"
@@ -90,15 +89,14 @@ onUpdated(async () => {
           <!-- <TransitionGroup name="list"> -->
           <li
             v-for="repo in allReposFiltered"
-            @click="() => selectRepo(repo.path)"
             :key="repo.name"
             class="text-xl border-b-2 border-gray-400 p-2 w-full h-full flex justify-center items-center bg-white sticky overflow-hidden search-results"
+            @click="() => selectRepo(repo.path)"
           >
             {{ repo.name }}
           </li>
           <!-- </TransitionGroup> -->
         </section>
-      </div>
     </div>
   </Transition>
 </template>
