@@ -51,6 +51,7 @@ function closeModal() {
   emits("close:modal", false);
 }
 
+
 function selectRepo(path: string) {
   repoStore.setRepo(path);
   closeModal();
@@ -93,7 +94,7 @@ onUpdated(async () => {
         <li
           v-for="repo in allReposFiltered"
           :key="repo.name"
-          class="text-xl border-b-2 border-gray-400 p-2 w-full h-full flex justify-center items-center bg-white sticky overflow-hidden search-results cursor-pointer"
+          class="text-xl border-b-2 border-gray-400 p-3 w-full h-full flex justify-center items-center bg-white overflow-hidden search-results cursor-pointer hover:bg-slate-100"
           @click="() => selectRepo(repo.path)"
         >
           {{ repo.name }}
