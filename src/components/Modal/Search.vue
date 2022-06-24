@@ -2,9 +2,12 @@
 import { PropType } from "vue";
 import { Repos } from "@types";
 import { invoke } from "@tauri-apps/api/tauri";
+import { useRepoStore } from "@stores";
 
 const allRepos = ref<Repos[]>([]);
 const allReposFiltered = ref<Repos[]>([]);
+
+const repoStore = useRepoStore();
 
 function filterRepos(query: string) {
   if (query == "") {
@@ -45,8 +48,14 @@ function closeModal() {
   emits("close:modal", false);
 }
 
-onMounted(async () => {
-  allRepos.value = await invoke<Repos[]>("db_get_all");
+function selectRepo(path: string) {
+  repoStore.setRepo(path);
+  closeModal();
+}
+onUpdated(async () => {
+ const res = await invoke<Repos[]>("db_get_all");
+   allRepos.value = res.filter((repo)=> repo.name !=="last_opened_repo")
+  console.log("allRepos:", allRepos.value);
 });
 </script>
 
@@ -70,22 +79,24 @@ onMounted(async () => {
             />
 
             <input
+              autofocus
               id="search"
-              placeholder="Search..."
+              placeholder="Type * to show all repos..."
               class="w-full h-full p-5 text-xl outline-white"
-              @change="(e)=>filterRepos((e.target as HTMLInputElement).value)"
+              @input="(e)=>filterRepos((e.target as HTMLInputElement).value)"
             />
           </span>
 
-          <TransitionGroup name="list">
-            <li
-              v-for="repo in allReposFiltered"
-              :key="repo.name"
-              class="text-xl border-b-2 border-gray-400 p-2 w-full h-full flex justify-center items-center bg-white sticky overflow-hidden search-results"
-            >
-              {{ repo.name }}
-            </li>
-          </TransitionGroup>
+          <!-- <TransitionGroup name="list"> -->
+          <li
+            v-for="repo in allReposFiltered"
+            @click="() => selectRepo(repo.path)"
+            :key="repo.name"
+            class="text-xl border-b-2 border-gray-400 p-2 w-full h-full flex justify-center items-center bg-white sticky overflow-hidden search-results"
+          >
+            {{ repo.name }}
+          </li>
+          <!-- </TransitionGroup> -->
         </section>
       </div>
     </div>

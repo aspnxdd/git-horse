@@ -441,6 +441,8 @@ pub fn commit(state: AppArg, message: String) -> Result<(), PError> {
 #[command]
 pub fn db_insert(key: Option<String>, value: Option<String>) -> Result<(), SledError> {
     let db = db::Db::new()?;
+    println!("key {:#?}", key);
+    println!("value {:#?}", value);
     db.insert(key.unwrap().as_str(), value.unwrap().as_str())?;
     return Ok(());
 }

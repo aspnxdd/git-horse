@@ -3,34 +3,42 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/dialog";
 import { useRepoStore } from "../../stores/index";
 import { Search } from "@components/Modal";
-import { Repos } from "@types";
 
 const activeBranchName = ref<null | string>(null);
 const repoName = ref<null | string>(null);
 const localBranchesNames = ref<null | string[]>(null);
 const remoteBranchesNames = ref<null | string[]>(null);
 const modalOpen = ref(false);
-
 const repoStore = useRepoStore();
 
-async function openRepo() {
-  const selected = await open({
-    directory: true,
-    multiple: false,
-  });
-  await invoke("open", { path: selected });
-
-  await resfreshBranches();
+async function openRepo(path: string | null) {
+  await invoke("open", { path });
   repoName.value = await invoke("get_repo_name");
+
   await invoke("db_insert", {
     key: repoName.value,
-    value: selected,
+    value: path,
   });
+  repoStore.setRepo(path as string);
+  await resfreshBranches();
   await invoke("write_last_opened_repo", {
-    key: repoName.value,
+    key: path,
   });
-  repoStore.setRepo(repoName.value as string);
 }
+
+async function handleOpenFile() {
+  const file = (await open({
+    directory: true,
+    multiple: false,
+  })) as string;
+  if (file) {
+    openRepo(file);
+  }
+}
+
+watch(repoStore, async () => {
+  await openRepo(repoStore.repo);
+});
 async function resfreshBranches() {
   localBranchesNames.value = await invoke("find_branches", { filter: "Local" });
   remoteBranchesNames.value = await invoke("find_branches", {
@@ -65,10 +73,7 @@ onMounted(() => {
   <nav
     class="relative left-0 top-0 h-screen bg-blue-900 w-60 flex flex-col text-white"
   >
-    <Search
-      :modalOpen="modalOpen"
-      @close:modal="modalOpen = false"
-    />
+    <Search :modalOpen="modalOpen" @close:modal="modalOpen = false" />
     <h1 class="font-bold text-xl flex justify-center items-center gap-3 my-4">
       <v-icon name="gi-horse-head" scale="1.5" /> Git Horse
     </h1>
@@ -77,7 +82,7 @@ onMounted(() => {
     <span class="font-semibold text-slate-400">{{ repoName || "-" }}</span>
     <button
       class="text-black bg-slate-50 m-2 rounded-md font-bold hover:bg-slate-300 transition-colors duration-150 ease-in-out mx-4 p-1"
-      @click="openRepo"
+      @click="handleOpenFile"
     >
       <span class="flex relative gap-3">
         <i class="left-0">
