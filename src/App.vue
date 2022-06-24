@@ -7,16 +7,13 @@ const repoStore = useRepoStore();
 
 onMounted(async () => {
   const res = await invoke<string>("read_last_opened_repo");
-  console.log("res:", res);
   repoStore.setRepo(res);
 });
 </script>
 
 <template>
-  <div class="flex">
-    <SideBar />
-    <FilesView />
-  </div>
+  <SideBar />
+  <FilesView />
 </template>
 
 <style>
@@ -26,5 +23,6 @@ onMounted(async () => {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  display: flex;
 }
 </style>

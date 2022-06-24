@@ -18,7 +18,7 @@ defineProps({
 
 const allRepos = ref<Repos[]>([]);
 const allReposFiltered = ref<Repos[]>([]);
-
+const searchValue = ref<string | null>(null);
 const repoStore = useRepoStore();
 
 function queryFn(query: string) {
@@ -38,6 +38,7 @@ function queryFn(query: string) {
 const filterReposDebounced = debounce(queryFn, 300);
 
 function filterReposHandler(query: string) {
+  searchValue.value = query;
   query == "" ? queryFn(query) : filterReposDebounced(query);
 }
 
@@ -93,6 +94,18 @@ onUpdated(populateRepos);
             class="w-full h-full p-5 text-xl outline-white"
             @input="(e)=>filterReposHandler((e.target as HTMLInputElement).value)"
           />
+          <p
+            v-if="!searchValue"
+            class="rounded-lg p-2 bg-zinc-200 border border-black"
+          >
+            Ctrl
+          </p>
+          <p
+            v-if="!searchValue"
+            class="rounded-lg p-2 bg-zinc-200 border border-black mx-2"
+          >
+            K
+          </p>
         </span>
 
         <li
