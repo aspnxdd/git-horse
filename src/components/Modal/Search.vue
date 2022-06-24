@@ -53,8 +53,8 @@ function selectRepo(path: string) {
   closeModal();
 }
 onUpdated(async () => {
- const res = await invoke<Repos[]>("db_get_all");
-   allRepos.value = res.filter((repo)=> repo.name !=="last_opened_repo")
+  const res = await invoke<Repos[]>("db_get_all");
+  allRepos.value = res.filter((repo) => repo.name !== "last_opened_repo");
   console.log("allRepos:", allRepos.value);
 });
 </script>
