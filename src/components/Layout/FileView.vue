@@ -34,6 +34,7 @@ function getStatusColor(status: GitStatus) {
 }
 
 const colorStatus = getStatusColor(props.status);
+
 </script>
 
 <template>

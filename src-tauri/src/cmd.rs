@@ -3,7 +3,7 @@ use git2::{AutotagOption, FetchOptions, RemoteCallbacks};
 use serde::{Deserialize, Serialize};
 use std::io::{self, Write};
 use std::str;
-use tauri::{command};
+use tauri::command;
 
 use crate::db;
 use crate::error::{GitError, SledError};
@@ -274,7 +274,6 @@ pub fn get_modified_files(state: AppArg) -> Result<Vec<FileStatus>, GitError> {
             .iter()
             .filter_map(|entry| {
                 let status = entry.status();
-                println!("status: {:#?}", status);
                 if status.intersects(INTERESTING) {
                     if let Some(path) = entry.path() {
                         let f = FileStatus {
@@ -290,7 +289,6 @@ pub fn get_modified_files(state: AppArg) -> Result<Vec<FileStatus>, GitError> {
                 }
             })
             .collect();
-        println!("files_statuses {:#?}", files_statuses);
         return Ok(files_statuses);
     }
     Err(GitError::RepoNotFound)
@@ -393,6 +391,23 @@ pub fn add(state: AppArg, files: Vec<String>) -> Result<(), GitError> {
         let mut index = repo.index()?;
         index.add_all(files_to_add.iter(), git2::IndexAddOption::DEFAULT, None)?;
         index.write()?;
+        return Ok(());
+    }
+    Err(GitError::RepoNotFound)
+}
+
+#[command]
+pub fn git_diff(state: AppArg) -> Result<(), GitError> {
+    let repo = state.repo.clone();
+    let repo = repo.lock().unwrap();
+    let repo = repo.as_ref();
+    if let Some(repo) = repo {
+        let index = repo.index()?;
+
+        let diff = repo.diff_index_to_workdir(Some(&index), None)?;
+        for i in diff.deltas() {
+            println!("i: {:?}", i);
+        }
         return Ok(());
     }
     Err(GitError::RepoNotFound)

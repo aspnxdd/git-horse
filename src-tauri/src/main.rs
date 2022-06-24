@@ -7,11 +7,11 @@ use tauri::api::shell;
 use tauri::Manager;
 
 mod cmd;
+mod db;
 mod error;
 mod git;
 mod menu;
 mod state;
-mod db;
 
 #[tauri::command]
 fn backend_add(number: i32) -> i32 {
@@ -43,6 +43,7 @@ fn main() {
             cmd::db_remove,
             cmd::write_last_opened_repo,
             cmd::read_last_opened_repo,
+            cmd::git_diff
         ])
         .menu(menu::Menu::new())
         .on_menu_event(|event| {

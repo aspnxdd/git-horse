@@ -28,7 +28,12 @@ const repoDiffStats = ref<RepoDiffStats>({
 watch(repoStore, async () => {
   await getModifiedFiles();
   await getStagedFiles();
+  await gitDiff();
 });
+
+async function gitDiff() {
+  console.log("diff",await invoke<string[]>("git_diff"));
+}
 function getGitStatus(status: number) {
   if (status === 256) return GitStatus.Modified;
   if (status === 512) return GitStatus.Deleted;
