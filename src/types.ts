@@ -20,3 +20,8 @@ export interface GitDiff {
   oldLine: number | null;
   origin: string;
 }
+
+export interface FileStatus {
+  fileName: string;
+  status: number;
+}

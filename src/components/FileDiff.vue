@@ -1,16 +1,67 @@
 <script setup lang="ts">
 import { PropType } from "vue";
-import { GitDiff } from "@types";
+import { GitDiff, GitStatus, Replace, FileStatus } from "@types";
 
-defineProps({
+const props = defineProps({
   repoDiffLines: {
     type: Array as PropType<GitDiff[]>,
     default: new Array<GitDiff>(),
   },
+  filesModifiedNames: {
+    type: Array as PropType<Replace<FileStatus, "status", GitStatus[]>[]>,
+    default: new Array<Replace<FileStatus, "status", GitStatus>>(),
+  },
 });
+const gitDiffContent = ref<GitDiff[]>([]);
+const repoDiffLinesFiltered = ref<Record<string, GitDiff[]>>({});
+
+function filterFileDiff() {
+  const filtered: Record<string, GitDiff[]> = {};
+  const breaklines: {
+    fileName: string;
+    breakline: number;
+  }[] = [];
+  for (const [index, diff] of props.repoDiffLines.entries()) {
+    const fileName = props.filesModifiedNames.filter((e) => {
+      return diff.diffContent.includes(e.fileName) && diff.origin == "F";
+    })[0]?.fileName;
+    if (!fileName) continue;
+    breaklines.push({ fileName, breakline: index });
+  }
+  console.log("breaklines", breaklines);
+  for (const [index, { fileName, breakline }] of breaklines.entries()) {
+    props.repoDiffLines.forEach((diff, i) => {
+      const nextBreakline = breaklines[index + 1]?.breakline ?? Infinity;
+      if (i > breakline && i <= nextBreakline) {
+        if (
+          filtered[fileName as string] &&
+          filtered[fileName as string].length > 0
+        ) {
+          filtered[fileName as string].push(diff);
+        } else {
+          filtered[fileName as string] = [diff];
+        }
+      }
+    });
+  }
+  repoDiffLinesFiltered.value = filtered;
+}
+onUpdated(() => {
+  filterFileDiff();
+});
+function displayFileDiff(fileName: string) {
+  gitDiffContent.value = repoDiffLinesFiltered.value[fileName as string];
+}
 </script>
 
 <template>
+  <nav
+    class="absolute right-0 top-0 h-screen w-60 flex flex-col text-white cursor-default"
+  >
+    <ul v-for="file in filesModifiedNames" :key="file.fileName">
+      <li @click="() => displayFileDiff(file.fileName)">{{ file.fileName }}</li>
+    </ul>
+  </nav>
   <section class="flex flex-col items-start">
     <h1 class="font-bold text-lg">Changed files:</h1>
     <code
@@ -20,7 +71,7 @@ defineProps({
       <table class="table-auto w-full text-left">
         <tbody>
           <tr
-            v-for="(file, index) in repoDiffLines"
+            v-for="(file, index) in gitDiffContent"
             :key="index"
             :class="{
               'bg-green-500': file.origin == '+',
@@ -47,5 +98,14 @@ main {
     rgba(69, 123, 229, 1) 100%
   );
   cursor: default;
+}
+
+nav {
+  background: rgb(8, 8, 111);
+  background: linear-gradient(
+    45deg,
+    rgba(8, 8, 111, 1) 0%,
+    rgb(38, 172, 20) 100%
+  );
 }
 </style>

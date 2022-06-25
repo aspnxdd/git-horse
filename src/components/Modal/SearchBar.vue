@@ -40,7 +40,7 @@ const filterReposDebounced = debounce(queryFn, 300);
 
 function filterReposHandler(query: string) {
   searchValue.value = query;
-  query == "" ? queryFn(query) : filterReposDebounced(query);
+  query == "" || query == "*" ? queryFn(query) : filterReposDebounced(query);
 }
 
 interface Emits {
