@@ -2,7 +2,8 @@
 import { useRepoStore } from "@stores";
 import { invoke } from "@tauri-apps/api/tauri";
 import { FileView } from "./index";
-import { GitStatus, Replace } from "@types";
+import { GitStatus, Replace, GitDiff } from "@types";
+import FileDiff from "../FileDiff.vue";
 interface RepoDiffStats {
   deletions: number;
   filesChanged: number;
@@ -25,6 +26,8 @@ const repoDiffStats = ref<RepoDiffStats>({
   filesChanged: 0,
   insertions: 0,
 });
+const repoDiffLines = ref<GitDiff[]>([]);
+
 watch(repoStore, async () => {
   await getModifiedFiles();
   await getStagedFiles();
@@ -32,7 +35,9 @@ watch(repoStore, async () => {
 });
 
 async function gitDiff() {
-  console.log("diff",await invoke<string[]>("git_diff"));
+  const res = await invoke<GitDiff[]>("git_diff");
+  console.log("git diff", res);
+  repoDiffLines.value = res;
 }
 function getGitStatus(status: number) {
   if (status === 256) return GitStatus.Modified;
@@ -182,6 +187,7 @@ onMounted(() => {
         Commit to {{ repoStore.activeBranch }}
       </button>
     </section>
+    <FileDiff :repo-diff-lines="repoDiffLines" />
   </main>
 </template>
 

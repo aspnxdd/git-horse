@@ -1,5 +1,5 @@
-use git2::BranchType;
 use git2::{AutotagOption, FetchOptions, RemoteCallbacks};
+use git2::{BranchType, DiffFormat, DiffLine};
 use serde::{Deserialize, Serialize};
 use std::io::{self, Write};
 use std::str;
@@ -395,20 +395,36 @@ pub fn add(state: AppArg, files: Vec<String>) -> Result<(), GitError> {
     }
     Err(GitError::RepoNotFound)
 }
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GitDiff {
+    diff_content: String,
+    new_line: Option<u32>,
+    old_line: Option<u32>,
+    origin: char,
+}
 
 #[command]
-pub fn git_diff(state: AppArg) -> Result<(), GitError> {
+pub fn git_diff(state: AppArg) -> Result<Vec<GitDiff>, GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
         let index = repo.index()?;
-
+        let mut lines: Vec<GitDiff> = Vec::new();
         let diff = repo.diff_index_to_workdir(Some(&index), None)?;
-        for i in diff.deltas() {
-            println!("i: {:?}", i);
-        }
-        return Ok(());
+        diff.print(git2::DiffFormat::Patch, |_, _, l| {
+            let line = str::from_utf8(l.content()).unwrap().to_owned();
+            lines.push(GitDiff {
+                diff_content: line,
+                new_line: l.new_lineno(),
+                old_line: l.old_lineno(),
+                origin: l.origin(),
+            });
+            return true;
+        })?;
+        // println!("lines: {:?}", lines);
+        return Ok(lines);
     }
     Err(GitError::RepoNotFound)
 }

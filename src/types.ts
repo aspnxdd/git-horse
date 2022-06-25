@@ -13,3 +13,10 @@ export interface Repos {
   path: string;
   name: string;
 }
+
+export interface GitDiff {
+  diffContent: string;
+  newLine: number | null;
+  oldLine: number | null;
+  origin: string;
+}
