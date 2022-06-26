@@ -35,13 +35,11 @@ function filterFileDiff() {
 
   for (const [index, { fileName, breakline }] of breaklines.entries()) {
     props.repoDiffLines.forEach((diff, i) => {
+      if (diff.origin == "F") return;
       const nextBreakline =
         breaklines[index + 1]?.breakline ?? props.repoDiffLines.length;
       if (i > breakline && i <= nextBreakline) {
-        if (
-          filtered[fileName as string] &&
-          filtered[fileName as string].length > 0
-        ) {
+        if (filtered[fileName as string]?.length > 0) {
           filtered[fileName as string].push(diff);
         } else {
           filtered[fileName as string] = [diff];
@@ -49,6 +47,7 @@ function filterFileDiff() {
       }
     });
   }
+  console.log("filtered", filtered);
   repoDiffLinesFiltered.value = filtered;
 }
 
@@ -66,7 +65,10 @@ const displayFileDiff = () => {
 </script>
 
 <template>
-  <section v-if="repoDiffLines.length > 0 && filesModifiedNames.length > 0" class="flex flex-col items-start mt-2">
+  <section
+    v-if="repoDiffLines.length > 0 && filesModifiedNames.length > 0"
+    class="flex flex-col items-start mt-2"
+  >
     <h1 class="font-bold text-lg">Changed file ({{ props.selectedFile }})</h1>
     <code
       v-if="repoDiffLines.length > 0"

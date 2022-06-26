@@ -143,4 +143,14 @@ onUpdated(populateRepos);
   height: max(30%, 10rem);
   box-shadow: 5px 5px 5px rgb(0 0 0 / 0.3);
 }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 </style>
