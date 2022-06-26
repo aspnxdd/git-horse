@@ -61,7 +61,10 @@ async function fetchRemote() {
   await invoke("fetch_remote");
   await resfreshBranches();
 }
-
+async function pushRemote() {
+  await invoke("push_remote");
+  await resfreshBranches();
+}
 onMounted(() => {
   document.addEventListener("keydown", (e) => {
     if (e.code == "KeyK" && e.ctrlKey) {
@@ -157,7 +160,7 @@ onMounted(() => {
     </button>
     <button
       class="text-black bg-slate-50 m-2 rounded-md font-bold hover:bg-slate-300 transition-colors duration-150 ease-in-out mx-4 p-1"
-      @click="fetchRemote"
+      @click="pushRemote"
     >
       <span class="flex relative gap-3">
         <i class="left-0">

@@ -43,7 +43,8 @@ fn main() {
             cmd::db_remove,
             cmd::write_last_opened_repo,
             cmd::read_last_opened_repo,
-            cmd::git_diff
+            cmd::git_diff,
+            cmd::push_remote
         ])
         .menu(menu::Menu::new())
         .on_menu_event(|event| {
