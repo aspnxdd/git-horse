@@ -1,6 +1,6 @@
 <p align="center">
+  <img align="center" src="./src-tauri/icons/horsea.png" width="50"  />
 	<h1 align="center">git-horse</h1>
-  <img align="center" src="./src-tauri/icons/horsea.ico" width="50"  />
 </p>
 
 git-horse is a git client for Desktop (WIP).
