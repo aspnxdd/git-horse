@@ -266,10 +266,9 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
             repo.path().to_str().unwrap()
         );
         let mut cb = RemoteCallbacks::new();
-        let mut remote = match repo.find_remote("origin") {
-            Ok(r) => r,
-            Err(_) => repo.remote("origin", "https://github.com/aspnxdd/git-horse.git")?,
-        };
+        let mut remote = repo
+        .find_remote(remote)
+        .or_else(|_| repo.remote_anonymous(remote))?;
         let git_config = git2::Config::open_default().unwrap();
         let mut ch = git2_credentials::CredentialHandler::new(git_config);
         cb.credentials(move |url, username, allowed| {
@@ -280,17 +279,11 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         let mut conn = remote.connect_auth(git2::Direction::Push, Some(cb), None)?;
         let mut po = PushOptions::new();
         let refspecs = format!("refs/heads/{}", head.to_string());
-        conn.remote()
-            .push(&[refspecs], Some(&mut po))?;
-        println!("pushed");
+        conn.remote().push(&[refspecs], Some(&mut po))?;
 
         conn.remote().disconnect()?;
-        println!("dc");
 
-        // // Update the references in the remote's namespace to point to the right
-        // // commits. This may be needed even if there was no packfile to download,
-        // // which can happen e.g. when the branches have been changed but all the
-        // // needed objects are available locally.
+     
         conn.remote()
             .update_tips(None, true, AutotagOption::Unspecified, None)?;
         return Ok(());
