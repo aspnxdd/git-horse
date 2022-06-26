@@ -265,10 +265,19 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
             remote,
             repo.path().to_str().unwrap()
         );
+        let git_config = git2::Config::open_default().unwrap();
+        let mut fo = FetchOptions::new();
+
         let mut cb = RemoteCallbacks::new();
         let mut remote = repo
             .find_remote(remote)
             .or_else(|_| repo.remote_anonymous(remote))?;
+        let mut ch = git2_credentials::CredentialHandler::new(git_config);
+
+        cb.credentials(move |url, username, allowed| {
+            ch.try_next_credential(url, username, allowed)
+        });
+        fo.remote_callbacks(cb);
         println!("remote: {:#?}", remote.name().unwrap());
         remote.connect(git2::Direction::Push)?;
         println!("connected");
