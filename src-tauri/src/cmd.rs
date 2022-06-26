@@ -1,4 +1,4 @@
-use git2::{AutotagOption, FetchOptions, RemoteCallbacks, PushOptions};
+use git2::{AutotagOption, FetchOptions, PushOptions, RemoteCallbacks};
 use git2::{BranchType, DiffFormat, DiffLine};
 use serde::{Deserialize, Serialize};
 use std::io::{self, Write};
@@ -271,8 +271,13 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
             .or_else(|_| repo.remote_anonymous(remote))?;
         println!("remote: {:#?}", remote.name().unwrap());
         remote.connect(git2::Direction::Push)?;
+        println!("connected");
         remote.push(&["refs/heads/master:refs/heads/master"], None)?;
+        println!("pushed");
+
         remote.disconnect()?;
+        println!("dc");
+
         // Update the references in the remote's namespace to point to the right
         // commits. This may be needed even if there was no packfile to download,
         // which can happen e.g. when the branches have been changed but all the
