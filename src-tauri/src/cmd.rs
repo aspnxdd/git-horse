@@ -265,7 +265,6 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
             remote,
             repo.path().to_str().unwrap()
         );
-        
         let mut cb = RemoteCallbacks::new();
         let mut remote = match repo.find_remote("origin") {
             Ok(r) => r,
@@ -276,15 +275,11 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         cb.credentials(move |url, username, allowed| {
             ch.try_next_credential(url, username, allowed)
         });
-       
-        let mut conn = remote.connect_auth(git2::Direction::Push,Some(cb),None)?;
-        println!("url: {:#?}", conn.remote().url());
-        println!("pushurl: {:#?}", conn.remote().pushurl());
-        println!("conn.remote(): {:#?}", conn.remote().name().unwrap());
-        println!("remote bool: {:#?}", conn.connected());
-        println!("connected");
+
+        let mut conn = remote.connect_auth(git2::Direction::Push, Some(cb), None)?;
         let mut po = PushOptions::new();
-        conn.remote().push(&["refs/heads/main:refs/heads/main"], Some(&mut po))?;
+        conn.remote()
+            .push(&["refs/heads/main"], Some(&mut po))?;
         println!("pushed");
 
         conn.remote().disconnect()?;
@@ -294,7 +289,8 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         // // commits. This may be needed even if there was no packfile to download,
         // // which can happen e.g. when the branches have been changed but all the
         // // needed objects are available locally.
-        conn.remote().update_tips(None, true, AutotagOption::Unspecified, None)?;
+        conn.remote()
+            .update_tips(None, true, AutotagOption::Unspecified, None)?;
         return Ok(());
     }
     Err(GitError::RepoNotFound)
