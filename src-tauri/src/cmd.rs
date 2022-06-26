@@ -265,13 +265,17 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
             remote,
             repo.path().to_str().unwrap()
         );
-        let git_config = git2::Config::open_default().unwrap();
-        let mut fo = FetchOptions::new();
+        
         let mut cb = RemoteCallbacks::new();
         let mut remote = match repo.find_remote("origin") {
             Ok(r) => r,
             Err(_) => repo.remote("origin", "https://github.com/aspnxdd/git-horse.git")?,
         };
+        let git_config = git2::Config::open_default().unwrap();
+        let mut ch = git2_credentials::CredentialHandler::new(git_config);
+        cb.credentials(move |url, username, allowed| {
+            ch.try_next_credential(url, username, allowed)
+        });
         println!("url: {:#?}", remote.url());
         println!("pushurl: {:#?}", remote.pushurl());
         println!("remote: {:#?}", remote.name().unwrap());
