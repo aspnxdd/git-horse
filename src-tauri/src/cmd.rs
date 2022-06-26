@@ -279,7 +279,7 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         let mut conn = remote.connect_auth(git2::Direction::Push, Some(cb), None)?;
         let mut po = PushOptions::new();
         conn.remote()
-            .push(&["refs/heads/main"], Some(&mut po))?;
+            .push(&[] as &[String], Some(&mut po))?;
         println!("pushed");
 
         conn.remote().disconnect()?;
