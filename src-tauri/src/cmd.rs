@@ -284,7 +284,7 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         println!("remote bool: {:#?}", conn.connected());
         println!("connected");
         let mut po = PushOptions::new();
-        conn.remote().push(&[] as &[String], Some(&mut po))?;
+        conn.remote().push(&["refs/heads/main:refs/heads/main"], Some(&mut po))?;
         println!("pushed");
 
         conn.remote().disconnect()?;
