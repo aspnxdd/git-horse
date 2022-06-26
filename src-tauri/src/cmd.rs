@@ -275,7 +275,7 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         println!("url: {:#?}", remote.url());
         println!("pushurl: {:#?}", remote.pushurl());
         println!("remote: {:#?}", remote.name().unwrap());
-        remote.connect(git2::Direction::Push)?;
+        remote.connect_auth(git2::Direction::Push,Some(cb),None)?;
         println!("remote bool: {:#?}", remote.connected());
         println!("connected");
         remote.push(&["refs/heads/master"], None)?;
