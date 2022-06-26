@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 pub enum GitError {
     RepoNotFound,
     NoBranches,
+    GitCheckoutError,
     GetDiffFailed,
     GetStatsFailed,
     GitError(String),

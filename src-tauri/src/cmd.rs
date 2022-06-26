@@ -29,10 +29,11 @@ pub fn open(state: AppArg, path: &str) -> Result<String, GitError> {
     match git::Repo::open(path) {
         Ok(repo) => {
             let mut handle = state.repo.lock().unwrap();
-            *handle = Some(repo.repo);
+            *handle = Some(repo);
             return Ok(handle
                 .as_ref()
                 .unwrap()
+                .repo
                 .path()
                 .to_str()
                 .unwrap()
@@ -63,7 +64,7 @@ pub fn find_branches(state: AppArg, filter: Option<MyBranchType>) -> Result<Vec<
             MyBranchType::Remote => filters = Some(BranchType::Remote),
         }
     }
-    let branches = git2::Repository::branches(repo, filters);
+    let branches = git2::Repository::branches(&repo.repo, filters);
     match branches {
         Ok(branches) => {
             let mut result = Vec::new();
@@ -86,10 +87,8 @@ pub fn get_current_branch_name(state: AppArg) -> Result<String, GitError> {
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
-        let head = repo.head()?;
-        println!("head: {:#?}", head.name());
-        let head = head.shorthand().unwrap();
-        return Ok(head.to_string());
+        let branch = repo.get_current_branch_name()?;
+        return Ok(branch);
     }
     Err(GitError::RepoNotFound)
 }
@@ -100,9 +99,8 @@ pub fn get_repo_name(state: AppArg) -> Result<String, GitError> {
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
-        let path_name = repo.path().to_str().unwrap().to_string();
-        let repo_name: Vec<&str> = path_name.split("/").collect();
-        return Ok(repo_name[repo_name.len() - 3].to_owned());
+        let name = repo.get_repo_name()?;
+        return Ok(name);
     }
     Err(GitError::RepoNotFound)
 }
@@ -113,25 +111,7 @@ pub fn checkout_branch(state: AppArg, branch_name: String) -> Result<(), GitErro
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
-        if let Ok(branch) = repo.find_branch(&branch_name, BranchType::Local) {
-            if branch.get().is_branch() {
-                let branch_ref = branch.get().name().unwrap();
-                println!("branch_ref: {}", branch_ref);
-                repo.set_head(&branch_ref)?;
-                return Ok(());
-            }
-        }
-
-        // Should create local branch of the remote branch
-        if let Ok(branch) = repo.find_branch(&branch_name, BranchType::Remote) {
-            if branch.get().is_remote() {
-                let branch_ref = branch.get().name().unwrap();
-                println!("branch_ref: {}", branch_ref);
-                // let new_branch = repo.branch(&branch_ref, BranchType::Local)?;
-                repo.set_head(&branch_ref)?;
-                return Ok(());
-            }
-        }
+        repo.checkout_branch(&branch_name)?;
     }
     Err(GitError::RepoNotFound)
 }
@@ -142,7 +122,7 @@ pub fn get_remotes(state: AppArg) -> Result<Vec<String>, GitError> {
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
-        let remotes = repo.remotes()?;
+        let remotes = repo.repo.remotes()?;
         let mut result: Vec<String> = Vec::new();
         remotes.iter().for_each(|remote| {
             result.push(remote.unwrap().to_owned());
@@ -164,12 +144,13 @@ pub fn fetch_remote(state: AppArg, remote: Option<String>) -> Result<(), GitErro
         println!(
             "Fetching {} for repo {}",
             remote,
-            repo.path().to_str().unwrap()
+            repo.repo.path().to_str().unwrap()
         );
         let mut cb = RemoteCallbacks::new();
         let mut remote = repo
+            .repo
             .find_remote(remote)
-            .or_else(|_| repo.remote_anonymous(remote))?;
+            .or_else(|_| repo.repo.remote_anonymous(remote))?;
         println!("remote: {:#?}", remote.name().unwrap());
         cb.sideband_progress(|data| {
             print!("remote: {}", str::from_utf8(data).unwrap());
@@ -259,31 +240,23 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
-        // Figure out whether it's a named remote or a URL
-        println!(
-            "pushing {} for repo {}",
-            remote,
-            repo.path().to_str().unwrap()
-        );
         let mut cb = RemoteCallbacks::new();
         let mut remote = repo
-        .find_remote(remote)
-        .or_else(|_| repo.remote_anonymous(remote))?;
+            .repo
+            .find_remote(remote)
+            .or_else(|_| repo.repo.remote_anonymous(remote))?;
         let git_config = git2::Config::open_default().unwrap();
         let mut ch = git2_credentials::CredentialHandler::new(git_config);
         cb.credentials(move |url, username, allowed| {
             ch.try_next_credential(url, username, allowed)
         });
-        let head = repo.head()?;
+        let head = repo.repo.head()?;
         let head = head.shorthand().unwrap();
         let mut conn = remote.connect_auth(git2::Direction::Push, Some(cb), None)?;
         let mut po = PushOptions::new();
         let refspecs = format!("refs/heads/{}", head.to_string());
         conn.remote().push(&[refspecs], Some(&mut po))?;
-
         conn.remote().disconnect()?;
-
-     
         conn.remote()
             .update_tips(None, true, AutotagOption::Unspecified, None)?;
         return Ok(());
@@ -305,7 +278,7 @@ pub fn get_modified_files(state: AppArg) -> Result<Vec<FileStatus>, GitError> {
     let mut status_options = git2::StatusOptions::new();
 
     if let Some(repo) = repo {
-        let statuses = repo.statuses(Some(
+        let statuses = repo.repo.statuses(Some(
             status_options
                 .include_ignored(false)
                 .include_untracked(true),
@@ -347,7 +320,7 @@ pub fn get_repo_diff(state: AppArg) -> Result<Stats, GitError> {
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
-        let stats = match repo.diff_index_to_workdir(None, None) {
+        let stats = match repo.repo.diff_index_to_workdir(None, None) {
             Ok(diff) => match diff.stats() {
                 Ok(stats) => stats,
                 Err(e) => {
@@ -376,10 +349,10 @@ pub fn add_all(state: AppArg) -> Result<(), GitError> {
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
-        let mut index = repo.index()?;
+        let mut index = repo.repo.index()?;
         index.add_all(["*"].iter(), git2::IndexAddOption::DEFAULT, None)?;
         index.write()?;
-        for s in repo.statuses(None).unwrap().iter() {
+        for s in repo.repo.statuses(None).unwrap().iter() {
             if s.status() != git2::Status::IGNORED {
                 println!("{:?}", s.path());
             }
@@ -396,6 +369,7 @@ pub fn get_staged_files(state: AppArg) -> Result<Vec<String>, GitError> {
     if let Some(repo) = repo {
         let mut status_options = git2::StatusOptions::new();
         let files = repo
+            .repo
             .statuses(Some(status_options.include_ignored(false)))?
             .iter()
             .filter_map(|s| {
@@ -415,7 +389,7 @@ pub fn add(state: AppArg, files: Vec<String>) -> Result<(), GitError> {
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
-        let statuses = repo.statuses(None).unwrap();
+        let statuses = repo.repo.statuses(None).unwrap();
         let mut files_to_add = Vec::new();
         for entry in statuses.iter() {
             for file in &files {
@@ -429,7 +403,7 @@ pub fn add(state: AppArg, files: Vec<String>) -> Result<(), GitError> {
                 }
             }
         }
-        let mut index = repo.index()?;
+        let mut index = repo.repo.index()?;
         index.add_all(files_to_add.iter(), git2::IndexAddOption::DEFAULT, None)?;
         index.write()?;
         return Ok(());
@@ -451,9 +425,9 @@ pub fn git_diff(state: AppArg) -> Result<Vec<GitDiff>, GitError> {
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
-        let index = repo.index()?;
+        let index = repo.repo.index()?;
         let mut lines: Vec<GitDiff> = Vec::new();
-        let diff = repo.diff_index_to_workdir(Some(&index), None)?;
+        let diff = repo.repo.diff_index_to_workdir(Some(&index), None)?;
         diff.print(git2::DiffFormat::Patch, |_, _, l| {
             let line = str::from_utf8(l.content()).unwrap().to_owned();
             lines.push(GitDiff {
@@ -476,31 +450,31 @@ pub fn commit(state: AppArg, message: String) -> Result<(), GitError> {
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
-        let mut index = repo.index().unwrap();
+        let mut index = repo.repo.index().unwrap();
         let oid = index.write_tree()?;
-        let tree = repo.find_tree(oid)?;
-        let parent = repo.head()?.peel_to_commit()?;
+        let tree = repo.repo.find_tree(oid)?;
+        let parent = repo.repo.head()?.peel_to_commit()?;
         let parent_id = parent.id();
-        let parent_id = repo.find_commit(parent_id)?;
-        let commit = repo.commit_create_buffer(
-            &repo.signature().unwrap(),
-            &repo.signature().unwrap(),
+        let parent_id = repo.repo.find_commit(parent_id)?;
+        let commit = repo.repo.commit_create_buffer(
+            &repo.repo.signature().unwrap(),
+            &repo.repo.signature().unwrap(),
             &message,
             &tree,
             &[&parent_id],
         )?;
-        let commit_signed = repo.commit_signed(
+        let commit_signed = repo.repo.commit_signed(
             &str::from_utf8(&commit).unwrap().to_string(),
-            &repo.signature().unwrap().to_string(),
+            &repo.repo.signature().unwrap().to_string(),
             None,
         )?;
-        let commit_id = repo.find_commit(commit_signed)?;
-        let head = repo.head()?;
+        let commit_id = repo.repo.find_commit(commit_signed)?;
+        let head = repo.repo.head()?;
         let head_id = head.peel_to_commit()?.id();
         if head_id == commit_id.id() {
             return Ok(());
         }
-        let mut head_ref = repo.head().unwrap();
+        let mut head_ref = repo.repo.head().unwrap();
         head_ref.set_target(commit_id.id(), "commit")?;
         return Ok(());
     }
