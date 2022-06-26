@@ -283,10 +283,10 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         println!("remote bool: {:#?}", conn.connected());
         println!("connected");
         conn.remote().push(&["refs/heads/master"], None)?;
-        // println!("pushed");
+        println!("pushed");
 
         conn.remote().disconnect()?;
-        // println!("dc");
+        println!("dc");
 
         // // Update the references in the remote's namespace to point to the right
         // // commits. This may be needed even if there was no packfile to download,
