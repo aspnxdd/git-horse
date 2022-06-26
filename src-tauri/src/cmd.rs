@@ -278,8 +278,9 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
             ch.try_next_credential(url, username, allowed)
         });
         fo.remote_callbacks(cb);
+        let  proxy_opts = git2::ProxyOptions::new();
         println!("remote: {:#?}", remote.name().unwrap());
-        remote.connect_auth(git2::Direction::Push, None, None)?;
+        remote.connect_auth(git2::Direction::Push, None, Some(git2::ProxyOptions::new()))?;
         println!("connected");
         remote.push(&["refs/heads/master"], None)?;
         println!("pushed");
