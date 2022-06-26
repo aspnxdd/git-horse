@@ -164,25 +164,25 @@ onMounted(() => {
           Add
         </button>
       </section>
-      <section class="flex items-start">
+      <section v-if="stagedFilesNames.length > 0" class="flex flex-col items-start w-2/5">
         <span class="flex items-center justify-center gap-2 p-2">
           <h1 class="font-bold text-lg">Staged changes:</h1>
         </span>
         <ul
-          v-if="stagedFilesNames.length > 0"
+          
           class="list-none p-2 bg-[#21325a] rounded-xl m-2"
         >
           <li
             v-for="file in stagedFilesNames"
             :key="file"
-            class="text-left p-2"
+            class="text-left p-2 text-xs"
           >
             {{ file }}
           </li>
         </ul>
         <textarea
           type="text"
-          class="rounded-lg my-2 p-1 text-black h-40 text-left text-clip w-full"
+          class="rounded-lg my-2 p-1 text-black h-40 text-left text-clip w-full text-sm"
           placeholder="Commit message"
           @change="(e)=>commitMessage=(e.target as HTMLTextAreaElement).value"
         />
