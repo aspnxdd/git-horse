@@ -265,26 +265,21 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
             remote,
             repo.path().to_str().unwrap()
         );
-        let remote_url = format!(
-            "file://{}",
-            std::fs::canonicalize("../git_remote").unwrap().display()
-        );
         let git_config = git2::Config::open_default().unwrap();
         let mut fo = FetchOptions::new();
-        repo.remote(remote, &remote_url)?;
         let mut cb = RemoteCallbacks::new();
-        let mut remote = match repo.find_remote("origin") {
-            Ok(r) => r,
-            Err(_) => repo.remote("origin", &remote_url)?,
-        };
+        let mut remote = repo
+            .find_remote(remote)
+            .or_else(|_| repo.remote_anonymous(remote))?;
         let mut ch = git2_credentials::CredentialHandler::new(git_config);
 
         cb.credentials(move |url, username, allowed| {
             ch.try_next_credential(url, username, allowed)
         });
         fo.remote_callbacks(cb);
-        let proxy_opts = git2::ProxyOptions::new();
-       
+        let  proxy_opts = git2::ProxyOptions::new();
+        println!("remote bool: {:#?}", remote.connected());
+    
         println!("url: {:#?}", remote.url());
         println!("pushurl: {:#?}", remote.pushurl());
         println!("remote: {:#?}", remote.name().unwrap());
