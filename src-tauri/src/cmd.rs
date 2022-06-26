@@ -278,12 +278,12 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         });
         fo.remote_callbacks(cb);
         let  proxy_opts = git2::ProxyOptions::new();
+        remote.connect_auth(git2::Direction::Push, None, Some(git2::ProxyOptions::new()))?;
         println!("remote bool: {:#?}", remote.connected());
     
         println!("url: {:#?}", remote.url());
         println!("pushurl: {:#?}", remote.pushurl());
         println!("remote: {:#?}", remote.name().unwrap());
-        remote.connect_auth(git2::Direction::Push, None, Some(git2::ProxyOptions::new()))?;
         println!("connected");
         remote.push(&["refs/heads/master"], None)?;
         println!("pushed");
