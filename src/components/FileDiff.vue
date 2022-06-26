@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { PropType } from "vue";
 import { GitDiff, GitStatus, Replace, FileStatus } from "@types";
-import { convertFileSrc } from "@tauri-apps/api/tauri";
-
+import TreeC from "./TreeC.vue";
 const props = defineProps({
   repoDiffLines: {
     type: Array as PropType<GitDiff[]>,
@@ -49,6 +48,7 @@ function filterFileDiff() {
   repoDiffLinesFiltered.value = filtered;
 }
 
+
 onUpdated(() => {
   filterFileDiff();
   if (gitDiffContent.value.length == 0)
@@ -64,26 +64,7 @@ function displayFileDiff(fileName: string) {
   <nav
     class="absolute right-4 top-4 rounded-xl w-[15rem] flex flex-col text-white cursor-default overflow-hidden p-4"
   >
-    <ul v-for="(file, index) in filesModifiedNames" :key="index">
-      <li v-for="(f, i) in file.fileName.split('/')" :key="f">
-        <p
-          class="text-left"
-          :class="{
-            [`pl-[1rem]`]: i == 1,
-            [`pl-[2rem]`]: i == 2,
-            [`pl-[3rem]`]: i == 3,
-            [`pl-[4rem]`]: i == 4,
-            [`pl-[5rem]`]: i == 5,
-            [`pl-[6rem]`]: i == 6,
-            [`pl-[7rem]`]: i == 7,
-            [`pl-[8rem]`]: i == 8,
-          }"
-          @click="() => displayFileDiff(file.fileName)"
-        >
-          {{ f }}
-        </p>
-      </li>
-    </ul>
+    <TreeC :files-modified-names="filesModifiedNames" />
   </nav>
   <section class="flex flex-col items-start">
     <h1 class="font-bold text-lg">Changed files:</h1>

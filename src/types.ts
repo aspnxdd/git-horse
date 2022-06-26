@@ -25,3 +25,9 @@ export interface FileStatus {
   fileName: string;
   status: number;
 }
+
+export interface TreeItem {
+  [key: string]: TreeItem  | boolean | number;
+  isFile: boolean;
+  depth: number;
+}

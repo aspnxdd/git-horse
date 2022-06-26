@@ -26,12 +26,14 @@ specifiers:
   vitest: 0.15.1
   vue: 3.2.37
   vue-tsc: 0.37.9
+  vue3-treeview: ^0.3.8
 
 dependencies:
   '@tauri-apps/api': 1.0.0
   oh-vue-icons: 1.0.0-rc3_vue@3.2.37
   pinia: 2.0.14_typescript@4.7.3+vue@3.2.37
   vue: 3.2.37
+  vue3-treeview: 0.3.8
 
 devDependencies:
   '@tauri-apps/cli': 1.0.0
@@ -1503,6 +1505,10 @@ packages:
     engines: {node: '>=14'}
     dev: true
 
+  /lodash-es/4.17.21:
+    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
+    dev: false
+
   /lodash.merge/4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
     dev: true
@@ -2312,6 +2318,13 @@ packages:
       '@vue/runtime-dom': 3.2.37
       '@vue/server-renderer': 3.2.37_vue@3.2.37
       '@vue/shared': 3.2.37
+    dev: false
+
+  /vue3-treeview/0.3.8:
+    resolution: {integrity: sha512-ccoU0pH8Ow4CgBp4NobUhECuFb5xLDoYd527+DCaRWnibW+XGl5fgJylJP5ojLCn5bF27T0cxicWXoe2AqVV1g==}
+    dependencies:
+      lodash-es: 4.17.21
+      vue: 3.2.37
     dev: false
 
   /webpack-sources/3.2.3:

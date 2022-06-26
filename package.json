@@ -16,7 +16,8 @@
     "@tauri-apps/api": "1.0.0",
     "oh-vue-icons": "^1.0.0-rc3",
     "pinia": "^2.0.14",
-    "vue": "3.2.37"
+    "vue": "3.2.37",
+    "vue3-treeview": "^0.3.8"
   },
   "devDependencies": {
     "@tauri-apps/cli": "1.0.0",
