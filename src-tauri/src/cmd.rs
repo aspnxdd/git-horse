@@ -271,13 +271,11 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         let mut remote = repo
             .find_remote(remote)
             .or_else(|_| repo.remote_anonymous(remote))?;
-      
-        remote.connect(git2::Direction::Push)?;
-        println!("remote bool: {:#?}", remote.connected());
-    
         println!("url: {:#?}", remote.url());
         println!("pushurl: {:#?}", remote.pushurl());
         println!("remote: {:#?}", remote.name().unwrap());
+        remote.connect(git2::Direction::Push)?;
+        println!("remote bool: {:#?}", remote.connected());
         println!("connected");
         remote.push(&["refs/heads/master"], None)?;
         println!("pushed");
