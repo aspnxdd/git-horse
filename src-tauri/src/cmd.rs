@@ -268,9 +268,10 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         let git_config = git2::Config::open_default().unwrap();
         let mut fo = FetchOptions::new();
         let mut cb = RemoteCallbacks::new();
-        let mut remote = repo
-            .find_remote(remote)
-            .or_else(|_| repo.remote_anonymous(remote))?;
+        let mut remote = match repo.find_remote("origin") {
+            Ok(r) => r,
+            Err(_) => repo.remote("origin", "https://github.com/aspnxdd/git-horse.git")?,
+        };
         println!("url: {:#?}", remote.url());
         println!("pushurl: {:#?}", remote.pushurl());
         println!("remote: {:#?}", remote.name().unwrap());
