@@ -282,7 +282,7 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         let mut conn = remote.connect_auth(git2::Direction::Push,Some(cb),None)?;
         println!("remote bool: {:#?}", conn.connected());
         println!("connected");
-        conn.remote().push(&["refs/heads/master"], None)?;
+        conn.remote().push(&[] as &[String], None)?;
         println!("pushed");
 
         conn.remote().disconnect()?;
