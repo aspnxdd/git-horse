@@ -279,20 +279,20 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         println!("url: {:#?}", remote.url());
         println!("pushurl: {:#?}", remote.pushurl());
         println!("remote: {:#?}", remote.name().unwrap());
-        remote.connect_auth(git2::Direction::Push,Some(cb),None)?;
-        println!("remote bool: {:#?}", remote.connected());
+        let mut conn = remote.connect_auth(git2::Direction::Push,Some(cb),None)?;
+        println!("remote bool: {:#?}", conn.connected());
         println!("connected");
-        remote.push(&["refs/heads/master"], None)?;
+        // remote.push(&["refs/heads/master"], None)?;
         println!("pushed");
 
-        remote.disconnect()?;
+        // remote.disconnect()?;
         println!("dc");
 
         // Update the references in the remote's namespace to point to the right
         // commits. This may be needed even if there was no packfile to download,
         // which can happen e.g. when the branches have been changed but all the
         // needed objects are available locally.
-        remote.update_tips(None, true, AutotagOption::Unspecified, None)?;
+        // remote.update_tips(None, true, AutotagOption::Unspecified, None)?;
         return Ok(());
     }
     Err(GitError::RepoNotFound)
