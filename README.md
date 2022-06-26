@@ -22,8 +22,8 @@ git-horse is a git client for Desktop (WIP).
 ## ⚓ Building from source
 
 ```
-npm install
-npm run tauri dev
+pnpm install
+pnpm build
 ```
 
 MIT License
