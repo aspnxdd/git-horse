@@ -275,11 +275,13 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         cb.credentials(move |url, username, allowed| {
             ch.try_next_credential(url, username, allowed)
         });
-
+        let head = repo.head()?;
+        let head = head.shorthand().unwrap();
         let mut conn = remote.connect_auth(git2::Direction::Push, Some(cb), None)?;
         let mut po = PushOptions::new();
+        let refspecs = format!("refs/heads/{}", head.to_string());
         conn.remote()
-            .push(&[] as &[String], Some(&mut po))?;
+            .push(&[refspecs], Some(&mut po))?;
         println!("pushed");
 
         conn.remote().disconnect()?;
