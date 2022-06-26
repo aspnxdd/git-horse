@@ -4,11 +4,16 @@ import type { PropType } from "vue";
 
 interface Emits {
   (e: "update:checked", checked: boolean): void;
+  (e: "display"): void;
 }
 const emits = defineEmits<Emits>();
 function updateChecked(checked: boolean) {
   console.log(1234, checked);
   emits("update:checked", checked);
+}
+function displayFile() {
+  console.log("em")
+  emits("display");
 }
 const props = defineProps({
   fileName: {
@@ -50,7 +55,7 @@ const colorStatus = getStatusColor(props.status);
       :checked="props.checked"
       @input="(event)=>updateChecked((event.target as HTMLInputElement).checked)"
     />
-    <label :for="fileName">{{ fileName }}</label>
+    <p :for="fileName" @click="displayFile">{{ fileName }}</p>
   </div>
 </template>
 

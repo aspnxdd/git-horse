@@ -23,6 +23,7 @@ const repoDiffStats = ref<RepoDiffStats>({
   insertions: 0,
 });
 const repoDiffLines = ref<GitDiff[]>([]);
+const selectedFile = ref<string | null>(null);
 
 watch(repoStore, async () => {
   await getModifiedFiles();
@@ -33,6 +34,7 @@ watch(repoStore, async () => {
 async function gitDiff() {
   const res = await invoke<GitDiff[]>("git_diff");
   repoDiffLines.value = res;
+  selectedFile.value = filesModifiedNames.value[0]?.fileName;
 }
 function getGitStatus(status: number) {
   if (status === 256) return GitStatus.Modified;
@@ -73,7 +75,9 @@ function updateArr(b: boolean, index: number) {
     filesChangedToogle.value = true;
   }
 }
-
+function displayFileDiff(index: number) {
+  selectedFile.value = filesModifiedNames.value[index as number].fileName;
+}
 async function add() {
   if (filesChangedToogle.value) {
     await invoke("add_all");
@@ -117,7 +121,7 @@ onMounted(() => {
     <h1 class="text-2xl">No new changes</h1>
   </main>
   <main v-else class="w-full p-4 text-slate-100">
-    <div class="flex flex-wrap w-[50vw] gap-3">
+    <div class="flex flex-wrap w-full gap-3">
       <section
         v-if="filesModifiedNames.length > 0"
         class="flex flex-col items-start"
@@ -149,6 +153,7 @@ onMounted(() => {
               :status="file.status"
               :checked="checkboxIter[index]"
               @update:checked="(b) => updateArr(b, index)"
+              @display="() => displayFileDiff(index)"
             />
           </li>
         </ul>
@@ -159,9 +164,10 @@ onMounted(() => {
           Add
         </button>
       </section>
-      <hr class="border-0 h-4" />
       <section class="flex flex-col items-start w-2/5">
-        <h1 class="font-bold text-lg">Staged changes:</h1>
+        <span class="flex items-center justify-center gap-2 p-2">
+          <h1 class="font-bold text-lg">Staged changes:</h1>
+        </span>
         <ul
           v-if="stagedFilesNames.length > 0"
           class="list-none p-2 bg-[#21325a] rounded-xl m-2"
@@ -188,9 +194,12 @@ onMounted(() => {
         </button>
       </section>
     </div>
+    <hr class="border-0 h-4" />
+
     <FileDiff
       :repo-diff-lines="repoDiffLines"
       :files-modified-names="filesModifiedNames"
+      :selected-file="selectedFile"
     />
   </main>
 </template>

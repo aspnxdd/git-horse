@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { PropType } from "vue";
 import { GitDiff, GitStatus, Replace, FileStatus } from "@types";
-import { convertFileSrc } from "@tauri-apps/api/tauri";
 
 const props = defineProps({
   repoDiffLines: {
@@ -9,8 +8,12 @@ const props = defineProps({
     default: new Array<GitDiff>(),
   },
   filesModifiedNames: {
-    type: Array as PropType<Replace<FileStatus, "status", GitStatus[]>[]>,
-    default: new Array<Replace<FileStatus, "status", GitStatus>>(),
+    type: Array as PropType<{ fileName: string; status: GitStatus }[]>,
+    default: null,
+  },
+  selectedFile: {
+    type: String as PropType<string | null>,
+    default: null,
   },
 });
 const gitDiffContent = ref<GitDiff[]>([]);
@@ -49,47 +52,25 @@ function filterFileDiff() {
   repoDiffLinesFiltered.value = filtered;
 }
 
-onUpdated(() => {
+watch(props, () => {
   filterFileDiff();
-  if (gitDiffContent.value.length == 0)
-    gitDiffContent.value =
-      repoDiffLinesFiltered.value[props.filesModifiedNames[0].fileName];
+  displayFileDiff();
 });
-function displayFileDiff(fileName: string) {
-  gitDiffContent.value = repoDiffLinesFiltered.value[fileName as string];
-}
+
+const displayFileDiff = () => {
+  console.log("selectedFile", props.selectedFile);
+
+  gitDiffContent.value =
+    repoDiffLinesFiltered.value[props.selectedFile as string];
+};
 </script>
 
 <template>
-  <nav
-    class="absolute right-4 top-4 rounded-xl w-[15rem] flex flex-col text-white cursor-default overflow-hidden p-4"
-  >
-    <ul v-for="(file, index) in filesModifiedNames" :key="index">
-      <li v-for="(f, i) in file.fileName.split('/')" :key="f">
-        <p
-          class="text-left"
-          :class="{
-            [`pl-[1rem]`]: i == 1,
-            [`pl-[2rem]`]: i == 2,
-            [`pl-[3rem]`]: i == 3,
-            [`pl-[4rem]`]: i == 4,
-            [`pl-[5rem]`]: i == 5,
-            [`pl-[6rem]`]: i == 6,
-            [`pl-[7rem]`]: i == 7,
-            [`pl-[8rem]`]: i == 8,
-          }"
-          @click="() => displayFileDiff(file.fileName)"
-        >
-          {{ f }}
-        </p>
-      </li>
-    </ul>
-  </nav>
-  <section class="flex flex-col items-start">
-    <h1 class="font-bold text-lg">Changed files:</h1>
+  <section class="flex flex-col items-start mt-2">
+    <h1 class="font-bold text-lg">Changed file ({{ props.selectedFile }})</h1>
     <code
       v-if="repoDiffLines.length > 0"
-      class="list-none p-2 bg-[#21325a] rounded-xl m-2 text-xs overflow-scroll max-w-[65vw] max-h-[60vh] break-words"
+      class="list-none p-2 bg-[#21325a] rounded-xl m-2 text-xs overflow-scroll h-[50vh] break-words w-[90%] mb-10"
     >
       <table class="table-auto w-full text-left">
         <tbody>
