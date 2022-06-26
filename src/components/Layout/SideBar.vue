@@ -78,7 +78,7 @@ onMounted(() => {
   >
     <SearchBar :modal-open="modalOpen" @close:modal="modalOpen = false" />
     <h1 class="font-bold text-xl flex justify-center items-center gap-3 my-4">
-      <v-icon name="gi-horse-head" scale="1.5" /> Git Horse
+      <v-icon name="pi-horsea" scale="1.5" /> Git Horse
     </h1>
     <h1 class="font-semibold">Current repository</h1>
 

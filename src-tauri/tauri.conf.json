@@ -14,7 +14,7 @@
             "active": true,
             "targets": "all",
             "identifier": "net.uninen.dev",
-            "icon": ["icons/horse.png", "icons/horse.ico"],
+            "icon": ["icons/horsea.png", "icons/horsea.ico"],
             "resources": [],
             "externalBin": [],
             "copyright": "",

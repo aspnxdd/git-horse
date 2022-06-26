@@ -10,7 +10,8 @@ import {
   HiCloudUpload,
   HiSolidChevronDoubleRight,
   HiSearch,
-  HiViewGrid
+  HiViewGrid,
+  PiHorsea
 } from "oh-vue-icons/icons";
 
 addIcons(
@@ -20,7 +21,8 @@ addIcons(
   HiCloudUpload,
   HiSolidChevronDoubleRight,
   HiSearch ,
-  HiViewGrid
+  HiViewGrid,
+  PiHorsea
 );
 
 import "./assets/main.postcss";

@@ -142,7 +142,9 @@ onMounted(() => {
           <span> 🟢 Insertions: {{ repoDiffStats?.insertions }}</span>
           <span> 🔴 Deletions: {{ repoDiffStats?.deletions }}</span>
         </div>
-        <ul class="list-none p-1 bg-[#21325a] rounded-xl m-2 h-28 min-w-[20rem] text-xs">
+        <ul
+          class="list-none p-1 bg-[#21325a] rounded-xl m-2 h-28 min-w-[20rem] text-xs overflow-y-scroll"
+        >
           <li
             v-for="(file, index) in filesModifiedNames"
             :key="file.fileName"
@@ -164,14 +166,14 @@ onMounted(() => {
           Add
         </button>
       </section>
-      <section v-if="stagedFilesNames.length > 0" class="flex flex-col items-start w-2/5">
+      <section
+        v-if="stagedFilesNames.length > 0"
+        class="flex flex-col items-start w-2/5"
+      >
         <span class="flex items-center justify-center gap-2 p-2">
           <h1 class="font-bold text-lg">Staged changes:</h1>
         </span>
-        <ul
-          
-          class="list-none p-2 bg-[#21325a] rounded-xl m-2"
-        >
+        <ul class="list-none p-2 bg-[#21325a] rounded-xl m-2">
           <li
             v-for="file in stagedFilesNames"
             :key="file"
