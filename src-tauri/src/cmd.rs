@@ -271,14 +271,8 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         let mut remote = repo
             .find_remote(remote)
             .or_else(|_| repo.remote_anonymous(remote))?;
-        let mut ch = git2_credentials::CredentialHandler::new(git_config);
-
-        cb.credentials(move |url, username, allowed| {
-            ch.try_next_credential(url, username, allowed)
-        });
-        fo.remote_callbacks(cb);
-        let  proxy_opts = git2::ProxyOptions::new();
-        remote.connect_auth(git2::Direction::Push, None, Some(git2::ProxyOptions::new()))?;
+      
+        remote.connect(git2::Direction::Push)?;
         println!("remote bool: {:#?}", remote.connected());
     
         println!("url: {:#?}", remote.url());
