@@ -117,71 +117,77 @@ onMounted(() => {
     <h1 class="text-2xl">No new changes</h1>
   </main>
   <main v-else class="w-full p-4 text-slate-100">
-    <section
-      v-if="filesModifiedNames.length > 0"
-      class="flex flex-col items-start"
-    >
-      <span class="flex items-center justify-center gap-2 p-2">
-        <input
-          type="checkbox"
-          class="accent-pink-500"
-          :checked="filesChangedToogle"
-          @click="toggleAll"
-          @change="() => (filesChangedToogle = !filesChangedToogle)"
-        />
-        <h1 class="font-bold text-lg">
-          Files changed ({{ filesModifiedNames?.length }})
-        </h1>
-      </span>
-      <div class="flex flex-col text-left ml-4">
-        <span> 🟢 Insertions: {{ repoDiffStats?.insertions }}</span>
-        <span> 🔴 Deletions: {{ repoDiffStats?.deletions }}</span>
-      </div>
-      <ul class="list-none p-2 bg-[#21325a] rounded-xl m-2">
-        <li
-          v-for="(file, index) in filesModifiedNames"
-          :key="file.fileName"
-          class="text-left p-2"
-        >
-          <FileView
-            :file-name="file.fileName"
-            :status="file.status"
-            :checked="checkboxIter[index]"
-            @update:checked="(b) => updateArr(b, index)"
+    <div class="flex flex-wrap w-[50vw] gap-3">
+      <section
+        v-if="filesModifiedNames.length > 0"
+        class="flex flex-col items-start"
+      >
+        <span class="flex items-center justify-center gap-2 p-2">
+          <input
+            type="checkbox"
+            class="accent-pink-500"
+            :checked="filesChangedToogle"
+            @click="toggleAll"
+            @change="() => (filesChangedToogle = !filesChangedToogle)"
           />
-        </li>
-      </ul>
-      <button
-        class="px-4 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
-        @click="add"
-      >
-        Add
-      </button>
-    </section>
-    <hr class="border-0 h-4" />
-    <section class="flex flex-col items-start">
-      <h1 class="font-bold text-lg">Staged changes:</h1>
-      <ul
-        v-if="stagedFilesNames.length > 0"
-        class="list-none p-2 bg-[#21325a] rounded-xl m-2"
-      >
-        <li v-for="file in stagedFilesNames" :key="file" class="text-left p-2">
-          {{ file }}
-        </li>
-      </ul>
-      <textarea
-        type="text"
-        class="rounded-lg my-2 p-1 text-black h-40 text-left text-clip w-2/5"
-        placeholder="Commit message"
-        @change="(e)=>commitMessage=(e.target as HTMLTextAreaElement).value"
-      />
-      <button
-        class="px-4 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
-        @click="commit"
-      >
-        Commit to {{ repoStore.activeBranch }}
-      </button>
-    </section>
+          <h1 class="font-bold text-lg">
+            Files changed ({{ filesModifiedNames?.length }})
+          </h1>
+        </span>
+        <div class="flex flex-col text-left ml-4">
+          <span> 🟢 Insertions: {{ repoDiffStats?.insertions }}</span>
+          <span> 🔴 Deletions: {{ repoDiffStats?.deletions }}</span>
+        </div>
+        <ul class="list-none p-2 bg-[#21325a] rounded-xl m-2">
+          <li
+            v-for="(file, index) in filesModifiedNames"
+            :key="file.fileName"
+            class="text-left p-2"
+          >
+            <FileView
+              :file-name="file.fileName"
+              :status="file.status"
+              :checked="checkboxIter[index]"
+              @update:checked="(b) => updateArr(b, index)"
+            />
+          </li>
+        </ul>
+        <button
+          class="px-4 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
+          @click="add"
+        >
+          Add
+        </button>
+      </section>
+      <hr class="border-0 h-4" />
+      <section class="flex flex-col items-start w-2/5">
+        <h1 class="font-bold text-lg">Staged changes:</h1>
+        <ul
+          v-if="stagedFilesNames.length > 0"
+          class="list-none p-2 bg-[#21325a] rounded-xl m-2"
+        >
+          <li
+            v-for="file in stagedFilesNames"
+            :key="file"
+            class="text-left p-2"
+          >
+            {{ file }}
+          </li>
+        </ul>
+        <textarea
+          type="text"
+          class="rounded-lg my-2 p-1 text-black h-40 text-left text-clip w-full"
+          placeholder="Commit message"
+          @change="(e)=>commitMessage=(e.target as HTMLTextAreaElement).value"
+        />
+        <button
+          class="px-4 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
+          @click="commit"
+        >
+          Commit to {{ repoStore.activeBranch }}
+        </button>
+      </section>
+    </div>
     <FileDiff
       :repo-diff-lines="repoDiffLines"
       :files-modified-names="filesModifiedNames"
