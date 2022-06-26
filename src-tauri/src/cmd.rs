@@ -261,7 +261,7 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
     if let Some(repo) = repo {
         // Figure out whether it's a named remote or a URL
         println!(
-            "Fetching {} for repo {}",
+            "pushing {} for repo {}",
             remote,
             repo.path().to_str().unwrap()
         );
@@ -315,7 +315,7 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
         });
         let mut po = PushOptions::new();
         po.remote_callbacks(cb);
-        remote.push(&[] as &[String], Some(&mut po))?;
+        remote.push(&["main"], Some(&mut po))?;
         {
             // If there are local objects (we got a thin pack), then tell the user
             // how many objects we saved from having to cross the network.
