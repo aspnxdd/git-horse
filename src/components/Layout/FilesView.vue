@@ -142,11 +142,11 @@ onMounted(() => {
           <span> 🟢 Insertions: {{ repoDiffStats?.insertions }}</span>
           <span> 🔴 Deletions: {{ repoDiffStats?.deletions }}</span>
         </div>
-        <ul class="list-none p-2 bg-[#21325a] rounded-xl m-2">
+        <ul class="list-none p-1 bg-[#21325a] rounded-xl m-2 h-28 min-w-[20rem] text-xs">
           <li
             v-for="(file, index) in filesModifiedNames"
             :key="file.fileName"
-            class="text-left p-2"
+            class="text-left p-1"
           >
             <FileView
               :file-name="file.fileName"
@@ -158,13 +158,13 @@ onMounted(() => {
           </li>
         </ul>
         <button
-          class="px-4 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
+          class="px-4 ml-3 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
           @click="add"
         >
           Add
         </button>
       </section>
-      <section class="flex flex-col items-start w-2/5">
+      <section class="flex items-start">
         <span class="flex items-center justify-center gap-2 p-2">
           <h1 class="font-bold text-lg">Staged changes:</h1>
         </span>

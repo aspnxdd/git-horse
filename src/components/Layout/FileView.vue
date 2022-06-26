@@ -51,7 +51,7 @@ const colorStatus = getStatusColor(props.status);
       :id="fileName"
       :ref="fileName"
       type="checkbox"
-      class="accent-pink-500"
+      class="accent-pink-500 mr-2"
       :checked="props.checked"
       @input="(event)=>updateChecked((event.target as HTMLInputElement).checked)"
     />

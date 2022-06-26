@@ -66,7 +66,7 @@ const displayFileDiff = () => {
 </script>
 
 <template>
-  <section class="flex flex-col items-start mt-2">
+  <section v-if="repoDiffLines.length > 0 && selectedFile" class="flex flex-col items-start mt-2">
     <h1 class="font-bold text-lg">Changed file ({{ props.selectedFile }})</h1>
     <code
       v-if="repoDiffLines.length > 0"
