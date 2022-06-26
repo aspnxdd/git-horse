@@ -72,7 +72,7 @@ const displayFileDiff = () => {
     <h1 class="font-bold text-lg">Changed file ({{ props.selectedFile }})</h1>
     <code
       v-if="repoDiffLines.length > 0"
-      class="list-none p-2 bg-[#21325a] rounded-xl m-2 text-xs overflow-scroll h-[50vh] break-words w-[90%] mb-10"
+      class="list-none p-2 bg-[#4c4653] rounded-xl m-2 text-xs overflow-scroll h-[50vh] break-words w-[90%] mb-10"
     >
       <table class="table-auto w-full text-left">
         <tbody>
@@ -80,8 +80,8 @@ const displayFileDiff = () => {
             v-for="(file, index) in gitDiffContent"
             :key="index"
             :class="{
-              'bg-green-500': file.origin == '+',
-              'bg-red-500': file.origin == '-',
+              'bg-green-800': file.origin == '+',
+              'bg-red-700': file.origin == '-',
             }"
           >
             <td>{{ file.oldLine }}</td>
@@ -97,12 +97,7 @@ const displayFileDiff = () => {
 
 <style scoped>
 main {
-  background: rgb(55, 55, 149);
-  background: linear-gradient(
-    120deg,
-    rgba(55, 55, 149, 1) 0%,
-    rgba(69, 123, 229, 1) 100%
-  );
+ 
   cursor: default;
 }
 

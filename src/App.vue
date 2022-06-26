@@ -24,5 +24,7 @@ onMounted(async () => {
   text-align: center;
   color: #2c3e50;
   display: flex;
+  background: #2e2a33;
+
 }
 </style>

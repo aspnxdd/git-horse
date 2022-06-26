@@ -41,7 +41,6 @@ watch(repoStore, async () => {
   await openRepo(repoStore.repo);
 });
 
-
 async function resfreshBranches() {
   localBranchesNames.value = await invoke("find_branches", { filter: "Local" });
   remoteBranchesNames.value = await invoke("find_branches", {
@@ -106,7 +105,7 @@ onMounted(() => {
       </span>
     </button>
 
-    <div v-if="repoName" class="bg-indigo-500 m-2 rounded-md mx-4">
+    <div v-if="repoName" class="bg-[#605d63] m-2 rounded-md mx-4">
       <h1 class="font-semibold text-left p-2">Active branches</h1>
       <hr class="border-b-[1px] mx-4 mb-1" />
 
@@ -119,7 +118,7 @@ onMounted(() => {
           as="button"
           class="text-black transition-colors duration-150 ease-in-out cursor-default font-semibold pl-2"
           :class="{
-            'bg-pink-300': branch === activeBranchName,
+            'bg-[#d3ccdc]': branch === activeBranchName,
             'hover:text-slate-100': branch !== activeBranchName,
           }"
           @click="checkoutBranch(branch)"
@@ -172,11 +171,6 @@ onMounted(() => {
 
 <style scoped>
 nav {
-  background: rgb(8, 8, 111);
-  background: linear-gradient(
-    45deg,
-    rgba(8, 8, 111, 1) 0%,
-    rgba(46, 107, 227, 1) 100%
-  );
+  background: 	#231e29;
 }
 </style>

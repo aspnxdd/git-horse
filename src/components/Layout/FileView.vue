@@ -12,7 +12,7 @@ function updateChecked(checked: boolean) {
   emits("update:checked", checked);
 }
 function displayFile() {
-  console.log("em")
+  console.log("em");
   emits("display");
 }
 const props = defineProps({
@@ -39,7 +39,6 @@ function getStatusColor(status: GitStatus) {
 }
 
 const colorStatus = getStatusColor(props.status);
-
 </script>
 
 <template>
@@ -55,7 +54,9 @@ const colorStatus = getStatusColor(props.status);
       :checked="props.checked"
       @input="(event)=>updateChecked((event.target as HTMLInputElement).checked)"
     />
-    <p :for="fileName" @click="displayFile">{{ fileName }}</p>
+    <p :for="fileName" class="hover:text-slate-400" @click="displayFile">
+      {{ fileName }}
+    </p>
   </div>
 </template>
 
