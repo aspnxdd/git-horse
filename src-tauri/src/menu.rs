@@ -1,4 +1,4 @@
-use tauri::{CustomMenuItem, Manager, Menu as TauriMenu, Submenu};
+use tauri::{CustomMenuItem, Menu as TauriMenu, Submenu};
 
 pub struct Menu {}
 impl Menu {

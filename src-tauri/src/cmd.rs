@@ -1,5 +1,5 @@
+use git2::BranchType;
 use git2::{AutotagOption, FetchOptions, PushOptions, RemoteCallbacks};
-use git2::{BranchType, DiffFormat, DiffLine};
 use serde::{Deserialize, Serialize};
 use std::io::{self, Write};
 use std::str;
