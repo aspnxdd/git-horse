@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PropType } from "vue";
-import { GitDiff, GitStatus, Replace, FileStatus } from "@types";
+import { GitDiff, GitStatus } from "@types";
 
 const props = defineProps({
   repoDiffLines: {
@@ -97,7 +97,6 @@ const displayFileDiff = () => {
 
 <style scoped>
 main {
- 
   cursor: default;
 }
 

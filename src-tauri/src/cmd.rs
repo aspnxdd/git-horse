@@ -1,5 +1,5 @@
-use git2::BranchType;
 use git2::{AutotagOption, FetchOptions, PushOptions, RemoteCallbacks};
+use git2::{BranchType, Revspec};
 use serde::{Deserialize, Serialize};
 use std::io::{self, Write};
 use std::str;
@@ -112,6 +112,7 @@ pub fn checkout_branch(state: AppArg, branch_name: String) -> Result<(), GitErro
     let repo = repo.as_ref();
     if let Some(repo) = repo {
         repo.checkout_branch(&branch_name)?;
+        return Ok(());
     }
     Err(GitError::RepoNotFound)
 }
@@ -477,6 +478,31 @@ pub fn commit(state: AppArg, message: String) -> Result<(), GitError> {
         let mut head_ref = repo.repo.head().unwrap();
         head_ref.set_target(commit_id.id(), "commit")?;
         return Ok(());
+    }
+    Err(GitError::RepoNotFound)
+}
+
+#[command]
+pub fn get_pending_commits_to_push(state: AppArg) -> Result<u32, GitError> {
+    let repo = state.repo.clone();
+    let repo = repo.lock().unwrap();
+    let repo = repo.as_ref();
+    if let Some(repo) = repo {
+        let branch_name = repo.get_current_branch_name()?;
+        let local_branch_oid = repo.repo.revparse_single(&branch_name)?.id();
+        let remote_branch_oid = repo
+            .repo
+            .revparse_single(format!("origin/{}", &branch_name).as_str())?
+            .id();
+        let local_branch = repo.repo.find_commit(local_branch_oid)?;
+        let remote_branch = repo.repo.find_commit(remote_branch_oid)?;
+        let mut revwalk = repo.repo.revwalk()?;
+
+        // At the start the revwalk is empty, we add the top/tip commit and all its ancestors
+        revwalk.push(local_branch.id())?;
+        // With hide we remove the latest commit in remote branch and all its ancestors
+        revwalk.hide(remote_branch.id())?;
+        return Ok(revwalk.count() as u32);
     }
     Err(GitError::RepoNotFound)
 }

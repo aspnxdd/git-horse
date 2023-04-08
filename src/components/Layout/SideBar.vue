@@ -10,6 +10,7 @@ const localBranchesNames = ref<null | string[]>(null);
 const remoteBranchesNames = ref<null | string[]>(null);
 const modalOpen = ref(false);
 const repoStore = useRepoStore();
+const pendingCommitsToPush = ref<null | number>(null);
 
 async function openRepo(path: string | null) {
   await invoke("open", { path });
@@ -24,6 +25,7 @@ async function openRepo(path: string | null) {
   await invoke("write_last_opened_repo", {
     key: path,
   });
+  await getPendingCommitsToPush();
 }
 
 async function handleOpenFile() {
@@ -39,6 +41,7 @@ async function handleOpenFile() {
 
 watch(repoStore, async () => {
   await openRepo(repoStore.repo);
+  await getPendingCommitsToPush();
 });
 
 async function resfreshBranches() {
@@ -50,9 +53,19 @@ async function resfreshBranches() {
   repoStore.setActiveBranch(activeBranchName.value as string);
 }
 
+async function getPendingCommitsToPush() {
+  try {
+    const _pendingCommitsToPush = await invoke("get_pending_commits_to_push");
+    pendingCommitsToPush.value = _pendingCommitsToPush as number;
+  } catch (e) {
+    pendingCommitsToPush.value = null;
+  }
+}
+
 async function checkoutBranch(branch: string) {
   await invoke("checkout_branch", { branchName: branch });
-  activeBranchName.value = await invoke("get_current_branch_name");
+  activeBranchName.value = branch;
+  repoStore.setActiveBranch(activeBranchName.value as string);
 }
 async function getRemotes() {
   console.log("remotes:", await invoke("get_remotes"));
@@ -71,6 +84,9 @@ onMounted(() => {
       modalOpen.value = true;
     }
   });
+  setInterval(async () => {
+    await getPendingCommitsToPush();
+  }, 5000);
 });
 </script>
 
@@ -167,6 +183,11 @@ onMounted(() => {
           <v-icon fill="black" name="hi-cloud-upload" scale="1.2" />
         </i>
         <p>Push</p>
+        <aside v-if="pendingCommitsToPush">
+          <v-icon name="bi-arrow-up-square" />
+
+          {{ pendingCommitsToPush }}
+        </aside>
       </span>
     </button>
   </nav>
@@ -174,6 +195,6 @@ onMounted(() => {
 
 <style scoped>
 nav {
-  background: 	#231e29;
+  background: #231e29;
 }
 </style>

@@ -44,7 +44,8 @@ fn main() {
             cmd::write_last_opened_repo,
             cmd::read_last_opened_repo,
             cmd::git_diff,
-            cmd::push_remote
+            cmd::push_remote,
+            cmd::get_pending_commits_to_push
         ])
         .menu(menu::Menu::new())
         .on_menu_event(|event| {
