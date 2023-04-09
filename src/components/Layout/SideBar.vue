@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRepoStore } from "@stores";
+import { useRepoStore, useModalsStore } from "@stores";
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/dialog";
 import { SearchBar } from "@components/Modal";
@@ -8,8 +8,9 @@ const activeBranchName = ref<null | string>(null);
 const repoName = ref<null | string>(null);
 const localBranchesNames = ref<null | string[]>(null);
 const remoteBranchesNames = ref<null | string[]>(null);
-const modalOpen = ref(false);
 const repoStore = useRepoStore();
+const modalsStore = useModalsStore();
+
 const pendingCommitsToPush = ref<null | number>(null);
 
 async function openRepo(path: string | null) {
@@ -48,14 +49,16 @@ async function resfreshBranches() {
   remoteBranchesNames.value = await invoke("find_branches", {
     filter: "Remote",
   });
-  activeBranchName.value = await invoke("get_current_branch_name");
-  repoStore.setActiveBranch(activeBranchName.value as string);
+  activeBranchName.value = await invoke<string>("get_current_branch_name");
+  repoStore.setActiveBranch(activeBranchName.value);
 }
 
 async function getPendingCommitsToPush() {
   try {
-    const _pendingCommitsToPush = await invoke("get_pending_commits_to_push");
-    pendingCommitsToPush.value = _pendingCommitsToPush as number;
+    const _pendingCommitsToPush = await invoke<number>(
+      "get_pending_commits_to_push"
+    );
+    pendingCommitsToPush.value = _pendingCommitsToPush;
   } catch (e) {
     pendingCommitsToPush.value = null;
   }
@@ -81,6 +84,12 @@ onMounted(() => {
   setInterval(async () => {
     await getPendingCommitsToPush();
   }, 5000);
+});
+
+watchEffect(() => {
+  if (repoStore.repo) {
+    openRepo(repoStore.repo);
+  }
 });
 </script>
 
@@ -108,13 +117,13 @@ onMounted(() => {
     </button>
     <button
       class="text-black bg-slate-50 m-2 rounded-md font-bold hover:bg-slate-300 transition-colors duration-150 ease-in-out mx-4 p-1"
-      @click="modalOpen = true"
+      @click="modalsStore.setSearchModalOpen(true)"
     >
       <span class="flex relative gap-3">
         <i class="left-0">
           <v-icon fill="black" name="hi-view-grid" scale="1.2" />
         </i>
-        <p>Recent</p>
+        <p>Recent (Ctrl+K)</p>
       </span>
     </button>
 

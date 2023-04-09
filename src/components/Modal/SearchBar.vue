@@ -1,23 +1,30 @@
 <script setup lang="ts">
 import { Repos } from "@types";
 import { invoke } from "@tauri-apps/api/tauri";
-import { useRepoStore } from "@stores";
+import { useRepoStore, useModalsStore } from "@stores";
 import { debounce } from "@utils";
+
+const DEBOUNCE_DELAY = 300;
+
+const QUERIES = {
+  ALL: "*",
+  EMPTY: "",
+} as const;
 
 const allRepos = ref<Repos[]>([]);
 const allReposFiltered = ref<Repos[]>([]);
 const searchValue = ref<string | null>(null);
-const repoStore = useRepoStore();
 const search = ref<HTMLInputElement | null>(null);
 
-const modalOpen = ref(false);
+const repoStore = useRepoStore();
+const modalsStore = useModalsStore();
 
 function queryFn(query: string) {
-  if (query == "") {
+  if (query === QUERIES.EMPTY) {
     allReposFiltered.value = [];
     return;
   }
-  if (query == "*") {
+  if (query === QUERIES.ALL) {
     allReposFiltered.value = allRepos.value;
     return;
   }
@@ -27,11 +34,13 @@ function queryFn(query: string) {
   return;
 }
 
-const filterReposDebounced = debounce(queryFn, 300);
+const filterReposDebounced = debounce(queryFn, DEBOUNCE_DELAY);
 
 function filterReposHandler(query: string) {
   searchValue.value = query;
-  query == "" || query == "*" ? queryFn(query) : filterReposDebounced(query);
+  query === QUERIES.EMPTY || query === QUERIES.ALL
+    ? queryFn(query)
+    : filterReposDebounced(query);
 }
 
 function handleModal(e: MouseEvent) {
@@ -42,7 +51,8 @@ function handleModal(e: MouseEvent) {
 
 function closeModal() {
   allReposFiltered.value = [];
-  modalOpen.value = false;
+  searchValue.value = null;
+  modalsStore.setSearchModalOpen(false);
 }
 
 function selectRepo(path: string) {
@@ -60,23 +70,31 @@ watchEffect(() => {
   }
 });
 
-onMounted(() => {
-  populateRepos();
+onMounted(async () => {
   document.addEventListener("keydown", (e) => {
-    if (e.code == "KeyK" && e.ctrlKey) {
-      modalOpen.value = !modalOpen.value;
+    if (e.code === "KeyK" && e.ctrlKey) {
+      if (modalsStore.searchModal) {
+        closeModal();
+      } else {
+        modalsStore.setSearchModalOpen(true);
+      }
     }
-    if (e.code == "Escape") {
+    if (e.code === "Escape") {
       closeModal();
     }
   });
+  await populateRepos();
+});
+
+onUpdated(async () => {
+  await populateRepos();
 });
 </script>
 
 <template>
   <Transition name="fade">
     <div
-      v-if="modalOpen"
+      v-if="modalsStore.searchModal"
       class="flex w-full h-full fixed overflow-auto bg-slate-900 bg-opacity-60 text-black z-10"
       @click="handleModal"
     >
