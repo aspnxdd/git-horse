@@ -11,20 +11,13 @@ mod db;
 mod error;
 mod git;
 mod menu;
-mod state;
 mod pull;
-
-#[tauri::command]
-fn backend_add(number: i32) -> i32 {
-    println!("Backend was called with an argument: {}", number);
-    return number + 2;
-}
+mod state;
 
 fn main() {
     tauri::Builder::default()
         .manage(state::MyState::default())
         .invoke_handler(tauri::generate_handler![
-            backend_add,
             cmd::open,
             cmd::find_branches,
             cmd::get_current_branch_name,
