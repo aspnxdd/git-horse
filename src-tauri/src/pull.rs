@@ -132,10 +132,9 @@ pub fn do_merge<'a>(
     fetch_commit: AnnotatedCommit<'a>,
 ) -> Result<(), Error> {
     // 1. do a merge analysis
-    let analysis = repo.merge_analysis(&[&fetch_commit])?;
-    println!("Merge analysis: {:?}", analysis);
+    let (merge_analysis, _) = repo.merge_analysis(&[&fetch_commit])?;
     // 2. Do the appropriate merge
-    if analysis.0.is_fast_forward() {
+    if merge_analysis.is_fast_forward() {
         println!("Doing a fast forward");
         // do a fast forward
         let refname = format!("refs/heads/{}", remote_branch);
@@ -162,12 +161,15 @@ pub fn do_merge<'a>(
                 ))?;
             }
         };
-    } else if analysis.0.is_normal() {
+        return Ok(());
+    }
+    if merge_analysis.is_normal() {
         // do a normal merge
         let head_commit = repo.reference_to_annotated_commit(&repo.head()?)?;
         normal_merge(&repo, &head_commit, &fetch_commit)?;
-    } else {
-        println!("Already up to date");
+        return Ok(());
     }
-    Ok(())
+    println!("Already up to date");
+
+    return Ok(());
 }
