@@ -12,6 +12,7 @@ mod error;
 mod git;
 mod menu;
 mod state;
+mod pull;
 
 #[tauri::command]
 fn backend_add(number: i32) -> i32 {
@@ -45,7 +46,9 @@ fn main() {
             cmd::read_last_opened_repo,
             cmd::git_diff,
             cmd::push_remote,
-            cmd::get_pending_commits_to_push
+            cmd::get_pending_commits_to_push,
+            cmd::get_pending_commits_to_pull,
+            cmd::pull_from_remote
         ])
         .menu(menu::Menu::new())
         .on_menu_event(|event| {

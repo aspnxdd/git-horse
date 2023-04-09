@@ -12,6 +12,7 @@ const repoStore = useRepoStore();
 const modalsStore = useModalsStore();
 
 const pendingCommitsToPush = ref<null | number>(null);
+const pendingCommitsToPull = ref<null | number>(null);
 
 async function openRepo(path: string | null) {
   await invoke("open", { path });
@@ -27,6 +28,7 @@ async function openRepo(path: string | null) {
     key: path,
   });
   await getPendingCommitsToPush();
+  await getPendingCommitsToPull();
 }
 
 async function handleOpenFile() {
@@ -42,6 +44,7 @@ async function handleOpenFile() {
 watch(repoStore, async () => {
   await openRepo(repoStore.repo);
   await getPendingCommitsToPush();
+  await getPendingCommitsToPull();
 });
 
 async function resfreshBranches() {
@@ -64,6 +67,17 @@ async function getPendingCommitsToPush() {
   }
 }
 
+async function getPendingCommitsToPull() {
+  try {
+    const _pendingCommitsToPull = await invoke<number>(
+      "get_pending_commits_to_pull"
+    );
+    pendingCommitsToPull.value = _pendingCommitsToPull;
+  } catch (e) {
+    pendingCommitsToPull.value = null;
+  }
+}
+
 async function checkoutBranch(branch: string) {
   await invoke("checkout_branch", { branchName: branch });
   activeBranchName.value = branch;
@@ -80,9 +94,15 @@ async function pushRemote() {
   await invoke("push_remote");
   await resfreshBranches();
 }
+
+async function pullRemote() {
+  await invoke("pull_from_remote");
+  await resfreshBranches();
+}
 onMounted(() => {
   setInterval(async () => {
     await getPendingCommitsToPush();
+    await getPendingCommitsToPull();
   }, 5000);
 });
 
@@ -175,6 +195,22 @@ watchEffect(() => {
           <v-icon fill="black" name="hi-cloud-download" scale="1.2" />
         </i>
         <p>Fetch</p>
+      </span>
+    </button>
+    <button
+      class="text-black bg-slate-50 m-2 rounded-md font-bold hover:bg-slate-300 transition-colors duration-150 ease-in-out mx-4 p-1"
+      @click="pullRemote"
+    >
+      <span class="flex relative gap-3">
+        <i class="left-0">
+          <v-icon fill="black" name="hi-cloud-download" scale="1.2" />
+        </i>
+        <p>Pull</p>
+        <aside v-if="pendingCommitsToPull">
+          <v-icon name="bi-arrow-down-square" />
+
+          {{ pendingCommitsToPull }}
+        </aside>
       </span>
     </button>
     <button
