@@ -1,25 +1,16 @@
 <script setup lang="ts">
-import { PropType } from "vue";
 import { Repos } from "@types";
 import { invoke } from "@tauri-apps/api/tauri";
 import { useRepoStore } from "@stores";
 import { debounce } from "@utils";
 
-defineProps({
-  modalOpen: {
-    type: Boolean,
-    default: false,
-  },
-  allRepos: {
-    type: Array as PropType<Repos[]>,
-    default: null,
-  },
-});
-
 const allRepos = ref<Repos[]>([]);
 const allReposFiltered = ref<Repos[]>([]);
 const searchValue = ref<string | null>(null);
 const repoStore = useRepoStore();
+const search = ref<HTMLInputElement | null>(null);
+
+const modalOpen = ref(false);
 
 function queryFn(query: string) {
   if (query == "") {
@@ -43,11 +34,6 @@ function filterReposHandler(query: string) {
   query == "" || query == "*" ? queryFn(query) : filterReposDebounced(query);
 }
 
-interface Emits {
-  (e: "close:modal", open: boolean): void;
-}
-const emits = defineEmits<Emits>();
-
 function handleModal(e: MouseEvent) {
   if ((e.target as HTMLDivElement).nodeName === "DIV") {
     closeModal();
@@ -56,7 +42,7 @@ function handleModal(e: MouseEvent) {
 
 function closeModal() {
   allReposFiltered.value = [];
-  emits("close:modal", false);
+  modalOpen.value = false;
 }
 
 function selectRepo(path: string) {
@@ -67,7 +53,24 @@ async function populateRepos() {
   const res = await invoke<Repos[]>("db_get_all");
   allRepos.value = res.filter((repo) => repo.name !== "last_opened_repo");
 }
-onUpdated(populateRepos);
+
+watchEffect(() => {
+  if (search.value) {
+    search.value.focus();
+  }
+});
+
+onMounted(() => {
+  populateRepos();
+  document.addEventListener("keydown", (e) => {
+    if (e.code == "KeyK" && e.ctrlKey) {
+      modalOpen.value = !modalOpen.value;
+    }
+    if (e.code == "Escape") {
+      closeModal();
+    }
+  });
+});
 </script>
 
 <template>
@@ -90,6 +93,7 @@ onUpdated(populateRepos);
 
           <input
             id="search"
+            ref="search"
             autofocus
             placeholder="Type * to show all repos..."
             class="w-full h-full p-5 text-xl outline-white"
@@ -152,5 +156,4 @@ onUpdated(populateRepos);
 .fade-leave-to {
   opacity: 0;
 }
-
 </style>

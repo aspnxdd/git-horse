@@ -33,7 +33,6 @@ async function handleOpenFile() {
     directory: true,
     multiple: false,
   })) as string;
-  console.log("file:", file);
   if (file) {
     openRepo(file);
   }
@@ -79,11 +78,6 @@ async function pushRemote() {
   await resfreshBranches();
 }
 onMounted(() => {
-  document.addEventListener("keydown", (e) => {
-    if (e.code == "KeyK" && e.ctrlKey) {
-      modalOpen.value = true;
-    }
-  });
   setInterval(async () => {
     await getPendingCommitsToPush();
   }, 5000);
@@ -94,7 +88,7 @@ onMounted(() => {
   <nav
     class="relative left-0 top-0 h-screen w-60 flex flex-col text-white cursor-default"
   >
-    <SearchBar :modal-open="modalOpen" @close:modal="modalOpen = false" />
+    <SearchBar />
     <h1 class="font-bold text-xl flex justify-center items-center gap-3 my-4">
       <v-icon name="pi-horsea" scale="1.5" /> Git Horse
     </h1>
