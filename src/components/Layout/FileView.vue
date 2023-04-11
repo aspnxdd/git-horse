@@ -1,27 +1,30 @@
 <script setup lang="ts">
-import { GitStatus } from "@types";
 import type { PropType } from "vue";
+
+import { GitStatus, GitStatusColors } from "src/shared/constants";
 
 interface Emits {
   (e: "update:checked", checked: boolean): void;
   (e: "display"): void;
 }
+
 const emits = defineEmits<Emits>();
+
 function updateChecked(checked: boolean) {
-  console.log(1234, checked);
   emits("update:checked", checked);
 }
+
 function displayFile() {
-  console.log("em");
   emits("display");
 }
+
 const props = defineProps({
   fileName: {
     type: String,
     default: null,
   },
   status: {
-    type: String as PropType<GitStatus>,
+    type: String as PropType<keyof typeof GitStatus>,
     default: null,
   },
   checked: {
@@ -29,12 +32,11 @@ const props = defineProps({
     default: true,
   },
 });
-function getStatusColor(status: GitStatus) {
-  console.log("status color", status);
-  if (status == "Modified") return "text-[#b57219]";
-  if (status == GitStatus.New) return "text-[#22a81b]";
-  if (status == GitStatus.Deleted) return "text-[#bf1b1b]";
-  if (status == GitStatus.Unknown) return "text-[#575757]";
+
+function getStatusColor(status: string) {
+  if (Object.hasOwn(GitStatusColors, status)) {
+    return GitStatusColors[status as keyof typeof GitStatusColors];
+  }
   return "text-[#f546fa]";
 }
 

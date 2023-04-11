@@ -1,11 +1,4 @@
-export enum GitStatus {
-  Modified = "Modified",
-  Unknown = "Unknown",
-  Deleted = "Deleted",
-  New = "New"
-}
-
-export type Replace<T, U extends string | number | symbol, V> = Omit<T, U> & {
+export type Replace<T, U extends PropertyKey, V> = Omit<T, U> & {
   [K in U]: V;
 };
 

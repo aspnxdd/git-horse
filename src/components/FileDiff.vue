@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { PropType } from "vue";
-import { GitDiff, GitStatus } from "@types";
+import type { PropType } from "vue";
+import type { GitDiff } from "src/shared/types";
+
+import { GitStatus } from "src/shared/constants";
 
 const props = defineProps({
   repoDiffLines: {
@@ -8,7 +10,9 @@ const props = defineProps({
     default: new Array<GitDiff>(),
   },
   filesModifiedNames: {
-    type: Array as PropType<{ fileName: string; status: GitStatus }[]>,
+    type: Array as PropType<
+      { fileName: string; status: keyof typeof GitStatus }[]
+    >,
     default: null,
   },
   selectedFile: {
@@ -16,6 +20,7 @@ const props = defineProps({
     default: null,
   },
 });
+
 const gitDiffContent = ref<GitDiff[]>([]);
 const repoDiffLinesFiltered = ref<Record<string, GitDiff[]>>({});
 
@@ -39,15 +44,14 @@ function filterFileDiff() {
       const nextBreakline =
         breaklines[index + 1]?.breakline ?? props.repoDiffLines.length;
       if (i > breakline && i <= nextBreakline) {
-        if (filtered[fileName as string]?.length > 0) {
-          filtered[fileName as string].push(diff);
+        if (filtered[fileName]?.length > 0) {
+          filtered[fileName].push(diff);
         } else {
-          filtered[fileName as string] = [diff];
+          filtered[fileName] = [diff];
         }
       }
     });
   }
-  console.log("filtered", filtered);
   repoDiffLinesFiltered.value = filtered;
 }
 
@@ -57,10 +61,8 @@ watch(props, () => {
 });
 
 const displayFileDiff = () => {
-  console.log("selectedFile", props.selectedFile);
-
-  gitDiffContent.value =
-    repoDiffLinesFiltered.value[props.selectedFile as string];
+  if (!props.selectedFile) return;
+  gitDiffContent.value = repoDiffLinesFiltered.value[props.selectedFile];
 };
 </script>
 

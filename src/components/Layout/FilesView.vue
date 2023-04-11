@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import type { Replace, GitDiff, FileStatus } from "src/shared/types";
+
 import { useRepoStore } from "@stores";
 import { invoke } from "@tauri-apps/api/tauri";
 import { FileView } from "./index";
-import { GitStatus, Replace, GitDiff, FileStatus } from "@types";
 import FileDiff from "../FileDiff.vue";
+import { GitStatus, GitStatusCodes } from "src/shared/constants";
 
 interface RepoDiffStats {
   deletions: number;
@@ -12,7 +14,9 @@ interface RepoDiffStats {
 }
 
 const repoStore = useRepoStore();
-const filesModifiedNames = ref<Replace<FileStatus, "status", GitStatus>[]>([]);
+const filesModifiedNames = ref<
+  Replace<FileStatus, "status", keyof typeof GitStatus>[]
+>([]);
 const stagedFilesNames = ref<string[]>([]);
 const checkboxIter = ref<boolean[]>([]);
 const filesChangedToogle = ref<boolean>(true);
@@ -37,54 +41,60 @@ async function gitDiff() {
   selectedFile.value = filesModifiedNames.value[0]?.fileName;
 }
 function getGitStatus(status: number) {
-  if (status === 256) return GitStatus.Modified;
-  if (status === 512) return GitStatus.Deleted;
-  if (status === 128) return GitStatus.New;
+  if (Object.hasOwn(GitStatusCodes, status)) {
+    return GitStatusCodes[status as keyof typeof GitStatusCodes];
+  }
   return GitStatus.Unknown;
 }
 
 async function getModifiedFiles() {
   const res = await invoke<FileStatus[]>("get_modified_files");
-  const fileStatuses = res.map((i) => {
+  const fileStatuses = res.map(({ fileName, status }) => {
     return {
-      fileName: i.fileName,
-      status: getGitStatus(i.status),
+      fileName,
+      status: getGitStatus(status),
     };
   });
   filesModifiedNames.value = fileStatuses;
-  console.log(123, fileStatuses);
   await getRepoDiff();
 }
+
 async function getStagedFiles() {
   stagedFilesNames.value = await invoke<string[]>("get_staged_files");
 }
+
 async function getRepoDiff() {
   repoDiffStats.value = await invoke<RepoDiffStats>("get_repo_diff");
 }
 
 function toggleAll() {
-  const falseArray = filesModifiedNames.value?.map(() => false) as boolean[];
-  const trueArray = filesModifiedNames.value?.map(() => true) as boolean[];
+  const falseArray = (filesModifiedNames.value ?? []).map(() => false);
+  const trueArray = (filesModifiedNames.value ?? []).map(() => true);
   checkboxIter.value = filesChangedToogle.value ? falseArray : trueArray;
 }
 
 function updateArr(b: boolean, index: number) {
-  checkboxIter.value[index as number] = b;
+  checkboxIter.value[index  ] = b;
   filesChangedToogle.value = false;
-  if (checkboxIter.value.every((v) => v === true)) {
+  if (checkboxIter.value.every((v) => !!v)) {
     filesChangedToogle.value = true;
   }
 }
+
 function displayFileDiff(index: number) {
-  selectedFile.value = filesModifiedNames.value[index as number].fileName;
+  selectedFile.value = filesModifiedNames.value[index  ].fileName;
 }
+
 async function add() {
   if (filesChangedToogle.value) {
     await invoke("add_all");
   } else {
-    const files = filesModifiedNames.value?.reduce((acc, { fileName }, i) => {
-      return checkboxIter.value[i as number] ? [...acc, fileName] : acc;
-    }, [] as string[]);
+    const files = (filesModifiedNames.value ?? []).reduce(
+      (acc, { fileName }, i) => {
+        return checkboxIter.value[i] ? [...acc, fileName] : acc;
+      },
+      [] as string[]
+    );
 
     await invoke("add", { files });
   }
@@ -99,6 +109,7 @@ async function commit() {
   await invoke("commit", { message: commitMessage.value });
   await getStagedFiles();
 }
+
 onMounted(() => {
   setInterval(async () => {
     await getModifiedFiles();

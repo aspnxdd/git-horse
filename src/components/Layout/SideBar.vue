@@ -15,6 +15,9 @@ const pendingCommitsToPush = ref<null | number>(null);
 const pendingCommitsToPull = ref<null | number>(null);
 
 async function openRepo(path: string | null) {
+  if (!path) {
+    return;
+  }
   await invoke("open", { path });
   repoName.value = await invoke("get_repo_name");
 
@@ -22,7 +25,7 @@ async function openRepo(path: string | null) {
     key: repoName.value,
     value: path,
   });
-  repoStore.setRepo(path as string);
+  repoStore.setRepo(path);
   await resfreshBranches();
   await invoke("write_last_opened_repo", {
     key: path,
@@ -32,11 +35,11 @@ async function openRepo(path: string | null) {
 }
 
 async function handleOpenFile() {
-  const file = (await open({
+  const file = await open({
     directory: true,
     multiple: false,
-  })) as string;
-  if (file) {
+  });
+  if (file && !Array.isArray(file)) {
     openRepo(file);
   }
 }
@@ -81,7 +84,7 @@ async function getPendingCommitsToPull() {
 async function checkoutBranch(branch: string) {
   await invoke("checkout_branch", { branchName: branch });
   activeBranchName.value = branch;
-  repoStore.setActiveBranch(activeBranchName.value as string);
+  repoStore.setActiveBranch(activeBranchName.value);
 }
 async function getRemotes() {
   console.log("remotes:", await invoke("get_remotes"));

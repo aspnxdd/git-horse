@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Repos } from "@types";
+import type { Repos } from "src/shared/types";
+
 import { invoke } from "@tauri-apps/api/tauri";
 import { useRepoStore, useModalsStore } from "@stores";
-import { debounce } from "@utils";
+import { debounce } from "src/shared/utils";
 
 const DEBOUNCE_DELAY = 300;
 
@@ -28,9 +29,9 @@ function queryFn(query: string) {
     allReposFiltered.value = allRepos.value;
     return;
   }
-  allReposFiltered.value = allRepos.value.filter((repo) => {
-    return repo.name.toLowerCase().includes(query.toLowerCase());
-  });
+  allReposFiltered.value = allRepos.value.filter((repo) =>
+    repo.name.toLowerCase().includes(query.toLowerCase())
+  );
   return;
 }
 
@@ -59,6 +60,7 @@ function selectRepo(path: string) {
   repoStore.setRepo(path);
   closeModal();
 }
+
 async function populateRepos() {
   const res = await invoke<Repos[]>("db_get_all");
   allRepos.value = res.filter((repo) => repo.name !== "last_opened_repo");

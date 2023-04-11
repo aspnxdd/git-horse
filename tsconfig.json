@@ -5,8 +5,8 @@
       "@components/Modal": ["src/components/Modal/index.ts"],
       "@stores": ["src/stores/index.ts"],
       "@lib/*": ["src/lib/*"],
-      "@types": ["src/types.ts"],
-      "@utils": ["src/utils.ts"]
+      "@types": ["src/shared/types.tsypes.ts"],
+      "@utils": ["src/shared/utils.ts"]
     },
     "baseUrl": ".",
     "target": "esnext",
