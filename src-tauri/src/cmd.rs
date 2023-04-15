@@ -2,7 +2,8 @@ use git2::BranchType;
 use git2::{AutotagOption, FetchOptions, PushOptions, RemoteCallbacks};
 use serde::{Deserialize, Serialize};
 use std::io::{self, Write};
-use std::str;
+use std::path::Path;
+use std::{fs, str};
 use tauri::command;
 
 use crate::db;
@@ -428,6 +429,86 @@ pub fn add(state: AppArg, files: Vec<String>) -> Result<(), GitError> {
     }
     Err(GitError::RepoNotFound)
 }
+
+#[command]
+pub fn remove(state: AppArg, files: Vec<String>) -> Result<(), GitError> {
+    let repo = state.repo.clone();
+    let repo = repo.lock().unwrap();
+    let repo = repo.as_ref();
+    if let Some(repo) = repo {
+        let statuses = repo.repo.statuses(None).unwrap();
+        let mut files_to_discard = Vec::new();
+        for entry in statuses.iter() {
+            for file in &files {
+                let status = entry.status();
+                if status.intersects(INTERESTING) {
+                    if let Some(path) = entry.path() {
+                        if path == file {
+                            files_to_discard.push(path.to_owned());
+                        }
+                    }
+                }
+            }
+        }
+        println!("{:?}", files_to_discard);
+        let cb = &mut |path: &Path, _matched_spec: &[u8]| -> i32 { 0 as i32 };
+        let mut index = repo.repo.index()?;
+        index.remove_all(files_to_discard.iter(), Some(cb))?;
+        index.write()?;
+        return Ok(());
+    }
+    Err(GitError::RepoNotFound)
+}
+
+#[command]
+pub fn discard(state: AppArg, files: Vec<String>) -> Result<(), GitError> {
+    let repo = state.repo.clone();
+    let repo = repo.lock().unwrap();
+    let repo = repo.as_ref();
+    if let Some(repo) = repo {
+        for file in files {
+            let file_abs_path = format!(
+                "{}{}",
+                repo.repo.path().to_str().unwrap().replace("/.git", ""),
+                file
+            );
+            let file_path = Path::new(&file_abs_path);
+            let head = repo.repo.head()?;
+
+            // Get the last commit (OID) for the file
+            let target = head
+                .target()
+                .ok_or_else(|| git2::Error::from_str("invalid head"))?;
+
+            // Get the object for the file in the last commit
+            let obj = repo
+                .repo
+                .find_object(target, Some(git2::ObjectType::Commit))?;
+
+            // Get the commit from the object
+            let commit = obj
+                .as_commit()
+                .ok_or_else(|| git2::Error::from_str("invalid commit"))?;
+            
+            let tree = commit.tree()?;
+            let entry = tree.get_path(Path::new(&file))?;
+            let blob = repo.repo.find_blob(entry.id())?;
+
+            // Write the contents of the blob to the file in the working directory
+            let contents = blob.content();
+            fs::write(file_path, contents).unwrap();
+
+            // Add the file to the index
+            let mut index = repo.repo.index()?;
+            index.add_path(Path::new(&file))?;
+            index.write()?;
+        }
+
+        return Ok(());
+    }
+    Err(GitError::RepoNotFound)
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GitDiff {

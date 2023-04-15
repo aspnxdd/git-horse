@@ -30,6 +30,8 @@ fn main() {
             cmd::commit,
             cmd::add_all,
             cmd::add,
+            cmd::remove,
+            cmd::discard,
             cmd::get_staged_files,
             cmd::db_get,
             cmd::db_get_all,

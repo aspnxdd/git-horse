@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { Replace, GitDiff, FileStatus } from "src/shared/types";
+import type {
+  FileStatusWithStatusLabel,
+  GitDiff,
+  FileStatus,
+} from "src/shared/types";
 
 import { useRepoStore } from "@stores";
 import { invoke } from "@tauri-apps/api/tauri";
@@ -7,19 +11,16 @@ import { FileView } from "./index";
 import FileDiff from "../FileDiff.vue";
 import { GitStatus, GitStatusCodes } from "src/shared/constants";
 
-interface RepoDiffStats {
+type RepoDiffStats = {
   deletions: number;
   filesChanged: number;
   insertions: number;
-}
+};
 
 const repoStore = useRepoStore();
-const filesModifiedNames = ref<
-  Replace<FileStatus, "status", keyof typeof GitStatus>[]
->([]);
+const filesModified = ref<FileStatusWithStatusLabel[]>([]);
 const stagedFilesNames = ref<string[]>([]);
-const checkboxIter = ref<boolean[]>([]);
-const filesChangedToogle = ref<boolean>(true);
+const isAllFilesChangedChecked = ref<boolean>(false);
 const commitMessage = ref<string | null>(null);
 const repoDiffStats = ref<RepoDiffStats>({
   deletions: 0,
@@ -29,17 +30,12 @@ const repoDiffStats = ref<RepoDiffStats>({
 const repoDiffLines = ref<GitDiff[]>([]);
 const selectedFile = ref<string | null>(null);
 
-watch(repoStore, async () => {
-  await getModifiedFiles();
-  await getStagedFiles();
-  await gitDiff();
-});
-
 async function gitDiff() {
   const res = await invoke<GitDiff[]>("git_diff");
   repoDiffLines.value = res;
-  selectedFile.value = filesModifiedNames.value[0]?.fileName;
+  selectedFile.value = filesModified.value[0]?.fileName;
 }
+
 function getGitStatus(status: number) {
   if (Object.hasOwn(GitStatusCodes, status)) {
     return GitStatusCodes[status as keyof typeof GitStatusCodes];
@@ -48,14 +44,15 @@ function getGitStatus(status: number) {
 }
 
 async function getModifiedFiles() {
-  const res = await invoke<FileStatus[]>("get_modified_files");
-  const fileStatuses = res.map(({ fileName, status }) => {
+  const modifiedFiles = await invoke<FileStatus[]>("get_modified_files");
+  const fileStatuses = modifiedFiles.map(({ fileName, status }) => {
     return {
       fileName,
       status: getGitStatus(status),
+      selected: false,
     };
   });
-  filesModifiedNames.value = fileStatuses;
+  filesModified.value = fileStatuses;
   await getRepoDiff();
 }
 
@@ -68,30 +65,33 @@ async function getRepoDiff() {
 }
 
 function toggleAll() {
-  const falseArray = (filesModifiedNames.value ?? []).map(() => false);
-  const trueArray = (filesModifiedNames.value ?? []).map(() => true);
-  checkboxIter.value = filesChangedToogle.value ? falseArray : trueArray;
+  filesModified.value = (filesModified.value ?? []).map((fileModified) => {
+    return {
+      ...fileModified,
+      selected: !isAllFilesChangedChecked.value,
+    };
+  });
 }
 
-function updateArr(b: boolean, index: number) {
-  checkboxIter.value[index  ] = b;
-  filesChangedToogle.value = false;
-  if (checkboxIter.value.every((v) => !!v)) {
-    filesChangedToogle.value = true;
+function updateFilesModifiedSelection(newValue: boolean, index: number) {
+  filesModified.value[index].selected = newValue;
+  isAllFilesChangedChecked.value = false;
+  if (filesModified.value.every(({ selected }) => !!selected)) {
+    isAllFilesChangedChecked.value = true;
   }
 }
 
 function displayFileDiff(index: number) {
-  selectedFile.value = filesModifiedNames.value[index  ].fileName;
+  selectedFile.value = filesModified.value[index].fileName;
 }
 
 async function add() {
-  if (filesChangedToogle.value) {
+  if (isAllFilesChangedChecked.value) {
     await invoke("add_all");
   } else {
-    const files = (filesModifiedNames.value ?? []).reduce(
-      (acc, { fileName }, i) => {
-        return checkboxIter.value[i] ? [...acc, fileName] : acc;
+    const files = (filesModified.value ?? []).reduce(
+      (acc, { fileName, selected }) => {
+        return selected ? [...acc, fileName] : acc;
       },
       [] as string[]
     );
@@ -101,6 +101,27 @@ async function add() {
   await getModifiedFiles();
   await getStagedFiles();
 }
+
+async function discard() {
+  if (isAllFilesChangedChecked.value) {
+    const files = (filesModified.value ?? []).reduce((acc, { fileName }) => {
+      return [...acc, fileName];
+    }, [] as string[]);
+    await invoke("discard", { files });
+  } else {
+    const files = (filesModified.value ?? []).reduce(
+      (acc, { fileName, selected }) => {
+        return selected ? [...acc, fileName] : acc;
+      },
+      [] as string[]
+    );
+
+    await invoke("discard", { files });
+  }
+  await getModifiedFiles();
+  await getStagedFiles();
+}
+
 async function commit() {
   if (!commitMessage.value) {
     alert("Please enter commit message");
@@ -109,6 +130,12 @@ async function commit() {
   await invoke("commit", { message: commitMessage.value });
   await getStagedFiles();
 }
+
+watch(repoStore, async () => {
+  await getModifiedFiles();
+  await getStagedFiles();
+  await gitDiff();
+});
 
 onMounted(() => {
   setInterval(async () => {
@@ -126,7 +153,7 @@ onMounted(() => {
     <h1 class="text-2xl">Select a repository</h1>
   </main>
   <main
-    v-else-if="filesModifiedNames.length == 0 && stagedFilesNames.length == 0"
+    v-else-if="filesModified.length == 0 && stagedFilesNames.length == 0"
     class="flex flex-col items-center justify-center w-full p-4 text-slate-100"
   >
     <h1 class="text-2xl">No new changes</h1>
@@ -134,19 +161,21 @@ onMounted(() => {
   <main v-else class="w-full p-4 text-slate-100">
     <div class="flex flex-wrap w-full gap-3">
       <section
-        v-if="filesModifiedNames.length > 0"
+        v-if="filesModified.length > 0"
         class="flex flex-col items-start"
       >
         <span class="flex items-center justify-center gap-2 p-2">
           <input
             type="checkbox"
             class="accent-pink-500"
-            :checked="filesChangedToogle"
+            :checked="isAllFilesChangedChecked"
             @click="toggleAll"
-            @change="() => (filesChangedToogle = !filesChangedToogle)"
+            @change="
+              () => (isAllFilesChangedChecked = !isAllFilesChangedChecked)
+            "
           />
           <h1 class="font-bold text-lg">
-            Files changed ({{ filesModifiedNames?.length }})
+            Files changed ({{ filesModified?.length }})
           </h1>
         </span>
         <div class="flex flex-col text-left ml-4">
@@ -157,25 +186,37 @@ onMounted(() => {
           class="list-none p-1 bg-[#4c4653] rounded-xl m-2 h-28 min-w-[20rem] text-xs overflow-y-scroll resize-y"
         >
           <li
-            v-for="(file, index) in filesModifiedNames"
+            v-for="(file, idx) in filesModified"
             :key="file.fileName"
             class="text-left p-1"
           >
             <FileView
               :file-name="file.fileName"
               :status="file.status"
-              :checked="checkboxIter[index]"
-              @update:checked="(b) => updateArr(b, index)"
-              @display="() => displayFileDiff(index)"
+              :checked="file.selected"
+              @update:checked="
+                (checkedValue) =>
+                  updateFilesModifiedSelection(checkedValue, idx)
+              "
+              @display="() => displayFileDiff(idx)"
             />
           </li>
         </ul>
-        <button
-          class="px-4 ml-3 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
-          @click="add"
-        >
-          Add
-        </button>
+        <div class="flex gap-4">
+          <button
+            class="px-4 ml-3 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
+            @click="add"
+          >
+            Add
+          </button>
+          <button
+            :disabled="filesModified.every((v) => !v.selected)"
+            class="px-4 ml-3 font-bold disabled:hover:bg-slate-400 disabled:bg-slate-400 text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
+            @click="discard"
+          >
+            Discard
+          </button>
+        </div>
       </section>
       <section
         v-if="stagedFilesNames.length > 0"
@@ -212,7 +253,7 @@ onMounted(() => {
 
     <FileDiff
       :repo-diff-lines="repoDiffLines"
-      :files-modified-names="filesModifiedNames"
+      :files-modified-names="filesModified"
       :selected-file="selectedFile"
     />
   </main>

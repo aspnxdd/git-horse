@@ -1,3 +1,5 @@
+import { GitStatus } from "./constants";
+
 export type Replace<T, U extends PropertyKey, V> = Omit<T, U> & {
   [K in U]: V;
 };
@@ -17,4 +19,10 @@ export interface GitDiff {
 export interface FileStatus {
   fileName: string;
   status: number;
+}
+
+export interface FileStatusWithStatusLabel {
+  fileName: string;
+  status: keyof typeof GitStatus;
+  selected: boolean;
 }
