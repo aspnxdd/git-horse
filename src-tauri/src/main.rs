@@ -13,6 +13,7 @@ mod git;
 mod menu;
 mod pull;
 mod state;
+mod utils;
 
 fn main() {
     tauri::Builder::default()

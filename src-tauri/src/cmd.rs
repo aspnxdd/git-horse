@@ -11,6 +11,7 @@ use crate::error::{GitError, SledError};
 use crate::git;
 use crate::pull::{do_fetch, do_merge};
 use crate::state::AppArg;
+use crate::utils::{get_absolute_path_from_relative, get_origin_and_current_name_from_line};
 
 const INTERESTING: git2::Status = git2::Status::from_bits_truncate(
     git2::Status::WT_NEW.bits()
@@ -477,11 +478,7 @@ pub fn discard(state: AppArg, files: Vec<String>) -> Result<(), GitError> {
     let repo = repo.as_ref();
     if let Some(repo) = repo {
         for file in files {
-            let file_abs_path = format!(
-                "{}{}",
-                repo.repo.path().to_str().unwrap().replace("/.git", ""),
-                file
-            );
+            let file_abs_path = get_absolute_path_from_relative(repo, &file);
             let file_path = Path::new(&file_abs_path);
             let head = repo.repo.head()?;
 
@@ -597,11 +594,10 @@ pub fn git_diff(state: AppArg) -> Result<Vec<GitDiff>, GitError> {
             });
             if line_diff.origin() == 'F' {
                 let line = str::from_utf8(line_diff.content()).unwrap().to_owned();
-                let origin_name = line.split(" ").nth(2).unwrap().trim_start_matches("a/");
-                let current_name = line.split(" ").nth(3).unwrap().trim_start_matches("b/");
+                let (origin_name, current_name) = get_origin_and_current_name_from_line(&line);
                 files_paths = files_paths
                     .iter()
-                    .filter(|x| x != &origin_name && x != &current_name)
+                    .filter(|x| x != &&origin_name && x != &&current_name)
                     .map(|x| x.to_owned())
                     .collect();
             }
@@ -609,16 +605,11 @@ pub fn git_diff(state: AppArg) -> Result<Vec<GitDiff>, GitError> {
         })?;
         println!("j aft: {:?}", files_paths);
 
-        for i in files_paths {
-            let file_abs_path = format!(
-                "{}{}",
-                repo.repo.path().to_str().unwrap().replace("/.git", ""),
-                i
-            );
-            let file_path = Path::new(&file_abs_path);
-            let file = fs::read_to_string(file_path).unwrap();
+        for file_path in files_paths {
+            let file_abs_path = get_absolute_path_from_relative(repo, &file_path);
+            let file = fs::read_to_string(Path::new(&file_abs_path)).unwrap();
             lines.push(GitDiff {
-                diff_content: format!("diff --git a/{} b/{}", i, i),
+                diff_content: format!("diff --git a/{} b/{}", file_path, file_path),
                 new_line: None,
                 old_line: None,
                 origin: 'F',
@@ -633,8 +624,6 @@ pub fn git_diff(state: AppArg) -> Result<Vec<GitDiff>, GitError> {
                 });
             }
         }
-        // TODO add new files which dont show on git diff
-
         return Ok(lines);
     }
     Err(GitError::RepoNotFound)
