@@ -19,7 +19,7 @@ type RepoDiffStats = {
 
 const repoStore = useRepoStore();
 const filesModified = ref<FileStatusWithStatusLabel[]>([]);
-const stagedFilesNames = ref<string[]>([]);
+const filesStaged = ref<FileStatusWithStatusLabel[]>([]);
 const isAllFilesChangedChecked = ref<boolean>(false);
 const commitMessage = ref<string | null>(null);
 const repoDiffStats = ref<RepoDiffStats>({
@@ -33,7 +33,9 @@ const selectedFile = ref<string | null>(null);
 async function gitDiff() {
   const res = await invoke<GitDiff[]>("git_diff");
   repoDiffLines.value = res;
-  selectedFile.value = filesModified.value[0]?.fileName;
+  if (selectedFile.value === null) {
+    selectedFile.value = filesStaged.value[0]?.fileName;
+  }
 }
 
 function getGitStatus(status: number) {
@@ -49,7 +51,9 @@ async function getModifiedFiles() {
     return {
       fileName,
       status: getGitStatus(status),
-      selected: false,
+      selected:
+        filesModified.value.find((e) => e.fileName === fileName)?.selected ??
+        false,
     };
   });
   filesModified.value = fileStatuses;
@@ -57,7 +61,17 @@ async function getModifiedFiles() {
 }
 
 async function getStagedFiles() {
-  stagedFilesNames.value = await invoke<string[]>("get_staged_files");
+  const _stagedFilesNames = await invoke<FileStatus[]>("get_staged_files");
+  const fileStatuses = _stagedFilesNames.map(({ fileName, status }) => {
+    return {
+      fileName,
+      selected:
+        filesStaged.value.find((e) => e.fileName === fileName)?.selected ??
+        false,
+      status: getGitStatus(status),
+    };
+  });
+  filesStaged.value = fileStatuses;
 }
 
 async function getRepoDiff() {
@@ -81,8 +95,18 @@ function updateFilesModifiedSelection(newValue: boolean, index: number) {
   }
 }
 
-function displayFileDiff(index: number) {
+function displayFileDiffModified(index: number) {
+  if (filesModified.value.length === 0) {
+    return;
+  }
   selectedFile.value = filesModified.value[index].fileName;
+}
+
+function displayFileDiffStaged(index: number) {
+  if (filesStaged.value.length === 0) {
+    return;
+  }
+  selectedFile.value = filesStaged.value[index].fileName;
 }
 
 async function add() {
@@ -129,6 +153,7 @@ async function commit() {
   }
   await invoke("commit", { message: commitMessage.value });
   await getStagedFiles();
+  selectedFile.value = filesModified.value[0]?.fileName;
 }
 
 watch(repoStore, async () => {
@@ -141,6 +166,7 @@ onMounted(() => {
   setInterval(async () => {
     await getModifiedFiles();
     await getStagedFiles();
+    await gitDiff();
   }, 5000);
 });
 </script>
@@ -153,7 +179,7 @@ onMounted(() => {
     <h1 class="text-2xl">Select a repository</h1>
   </main>
   <main
-    v-else-if="filesModified.length == 0 && stagedFilesNames.length == 0"
+    v-else-if="filesModified.length === 0 && filesStaged.length === 0"
     class="flex flex-col items-center justify-center w-full p-4 text-slate-100"
   >
     <h1 class="text-2xl">No new changes</h1>
@@ -187,7 +213,7 @@ onMounted(() => {
         >
           <li
             v-for="(file, idx) in filesModified"
-            :key="file.fileName"
+            :key="file.fileName + file.selected + file.status"
             class="text-left p-1"
           >
             <FileView
@@ -198,40 +224,50 @@ onMounted(() => {
                 (checkedValue) =>
                   updateFilesModifiedSelection(checkedValue, idx)
               "
-              @display="() => displayFileDiff(idx)"
+              @display="() => displayFileDiffModified(idx)"
             />
           </li>
         </ul>
         <div class="flex gap-4">
           <button
-            class="px-4 ml-3 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
+            :disabled="filesModified.every((v) => !v.selected)"
+            class="px-4 ml-3 font-bold disabled:hover:bg-slate-400 disabled:bg-slate-400 text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
             @click="add"
           >
-            Add
+            Add ({{ filesModified.filter((v) => v.selected).length }})
           </button>
           <button
             :disabled="filesModified.every((v) => !v.selected)"
             class="px-4 ml-3 font-bold disabled:hover:bg-slate-400 disabled:bg-slate-400 text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
             @click="discard"
           >
-            Discard
+            Discard ({{ filesModified.filter((v) => v.selected).length }})
           </button>
         </div>
       </section>
       <section
-        v-if="stagedFilesNames.length > 0"
+        v-if="filesStaged.length > 0"
         class="flex flex-col items-start w-2/5"
       >
         <span class="flex items-center justify-center gap-2 p-2">
           <h1 class="font-bold text-lg">Staged changes:</h1>
         </span>
-        <ul class="list-none p-2 bg-[#21325a] rounded-xl m-2">
+        <ul class="list-none space-y-2">
           <li
-            v-for="file in stagedFilesNames"
-            :key="file"
-            class="text-left p-2 text-xs"
+            v-for="(stagedFileName, idx) in filesStaged"
+            :key="stagedFileName.fileName"
+            class="text-left p-2 text-xs bg-[#21325a] rounded-xl m-2"
+            @click="
+              () => {
+                displayFileDiffStaged(idx);
+              }
+            "
           >
-            {{ file }}
+            <FileView
+              :file-name="stagedFileName.fileName"
+              :status="stagedFileName.status"
+              :is-input="false"
+            />
           </li>
         </ul>
         <textarea
@@ -253,7 +289,7 @@ onMounted(() => {
 
     <FileDiff
       :repo-diff-lines="repoDiffLines"
-      :files-modified-names="filesModified"
+      :files-modified-names="[...filesStaged, ...filesModified]"
       :selected-file="selectedFile"
     />
   </main>
@@ -262,7 +298,6 @@ onMounted(() => {
 <style scoped>
 main {
   background: #2e2a33;
-
   cursor: default;
 }
 .list-enter-active,

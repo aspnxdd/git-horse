@@ -1,5 +1,5 @@
-use git2::BranchType;
 use git2::{AutotagOption, FetchOptions, PushOptions, RemoteCallbacks};
+use git2::{BranchType, DiffDelta};
 use serde::{Deserialize, Serialize};
 use std::io::{self, Write};
 use std::path::Path;
@@ -21,7 +21,7 @@ const INTERESTING: git2::Status = git2::Status::from_bits_truncate(
 const INTERESTING_STAGED: git2::Status = git2::Status::from_bits_truncate(
     git2::Status::INDEX_DELETED.bits()
         | git2::Status::INDEX_MODIFIED.bits()
-        | git2::Status::INDEX_MODIFIED.bits()
+        | git2::Status::INDEX_NEW.bits()
         | git2::Status::INDEX_RENAMED.bits()
         | git2::Status::INDEX_TYPECHANGE.bits(),
 );
@@ -309,11 +309,11 @@ pub fn get_modified_files(state: AppArg) -> Result<Vec<FileStatus>, GitError> {
                 let status = entry.status();
                 if status.intersects(INTERESTING) {
                     if let Some(path) = entry.path() {
-                        let f = FileStatus {
+                        let file_status = FileStatus {
                             file_name: path.to_owned(),
                             status: status.bits(),
                         };
-                        return Some(f);
+                        return Some(file_status);
                     } else {
                         return None;
                     };
@@ -381,24 +381,34 @@ pub fn add_all(state: AppArg) -> Result<(), GitError> {
     Err(GitError::RepoNotFound)
 }
 #[command]
-pub fn get_staged_files(state: AppArg) -> Result<Vec<String>, GitError> {
+pub fn get_staged_files(state: AppArg) -> Result<Vec<FileStatus>, GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
         let mut status_options = git2::StatusOptions::new();
-        let files = repo
+        let files_statuses = repo
             .repo
             .statuses(Some(status_options.include_ignored(false)))?
             .iter()
-            .filter_map(|s| {
-                if s.status().intersects(INTERESTING_STAGED) {
-                    return Some(s.path().unwrap().to_owned());
+            .filter_map(|entry| {
+                let status = entry.status();
+                if status.intersects(INTERESTING_STAGED) {
+                    if let Some(path) = entry.path() {
+                        let file_status = FileStatus {
+                            file_name: path.to_owned(),
+                            status: status.bits(),
+                        };
+                        return Some(file_status);
+                    } else {
+                        return None;
+                    };
+                } else {
+                    return None;
                 }
-                None
             })
             .collect();
-        return Ok(files);
+        return Ok(files_statuses);
     }
     Err(GitError::RepoNotFound)
 }
@@ -489,7 +499,7 @@ pub fn discard(state: AppArg, files: Vec<String>) -> Result<(), GitError> {
             let commit = obj
                 .as_commit()
                 .ok_or_else(|| git2::Error::from_str("invalid commit"))?;
-            
+
             let tree = commit.tree()?;
             let entry = tree.get_path(Path::new(&file))?;
             let blob = repo.repo.find_blob(entry.id())?;
@@ -524,20 +534,107 @@ pub fn git_diff(state: AppArg) -> Result<Vec<GitDiff>, GitError> {
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
-        let index = repo.repo.index()?;
+        let head = repo.repo.head()?;
+
+        // Get the last commit (OID) for the file
+        let target = head
+            .target()
+            .ok_or_else(|| git2::Error::from_str("invalid head"))?;
+
+        // Get the object for the file in the last commit
+        let obj = repo
+            .repo
+            .find_object(target, Some(git2::ObjectType::Commit))?;
+
+        // Get the commit from the object
+        let commit = obj
+            .as_commit()
+            .ok_or_else(|| git2::Error::from_str("invalid commit"))?;
+
+        let tree = commit.tree()?;
+
+        let mut status_options = git2::StatusOptions::new();
+        let mut diff_opts = git2::DiffOptions::new();
+
+        let mut files_paths = vec![];
+        repo.repo
+            .statuses(Some(
+                status_options
+                    .include_ignored(false)
+                    .include_untracked(true),
+            ))?
+            .iter()
+            .for_each(|entry| {
+                let head = entry.head_to_index();
+                let status = entry.status();
+                let path = entry.path();
+                if head.is_some() && status.intersects(INTERESTING_STAGED) {
+                    let head = head.unwrap();
+                    if head.new_file().size() != 0 {
+                        diff_opts.pathspec(Path::new(&path.unwrap().to_owned()));
+                    }
+                } else {
+                    if status.intersects(INTERESTING) {
+                        diff_opts.pathspec(Path::new(&path.unwrap().to_owned()));
+                        files_paths.push(path.unwrap().to_owned());
+                    }
+                }
+            });
+        println!("j bef: {:?}", files_paths);
+        let diff = repo
+            .repo
+            .diff_tree_to_workdir_with_index(Some(&tree), Some(&mut diff_opts))?;
+
         let mut lines: Vec<GitDiff> = Vec::new();
-        let diff = repo.repo.diff_index_to_workdir(Some(&index), None)?;
-        diff.print(git2::DiffFormat::Patch, |_, _, l| {
-            let line = str::from_utf8(l.content()).unwrap().to_owned();
+
+        diff.print(git2::DiffFormat::Patch, |_, _, line_diff| {
+            let line = str::from_utf8(line_diff.content()).unwrap().to_owned();
             lines.push(GitDiff {
                 diff_content: line,
-                new_line: l.new_lineno(),
-                old_line: l.old_lineno(),
-                origin: l.origin(),
+                new_line: line_diff.new_lineno(),
+                old_line: line_diff.old_lineno(),
+                origin: line_diff.origin(),
             });
+            if line_diff.origin() == 'F' {
+                let line = str::from_utf8(line_diff.content()).unwrap().to_owned();
+                let origin_name = line.split(" ").nth(2).unwrap().trim_start_matches("a/");
+                let current_name = line.split(" ").nth(3).unwrap().trim_start_matches("b/");
+                files_paths = files_paths
+                    .iter()
+                    .filter(|x| x != &origin_name && x != &current_name)
+                    .map(|x| x.to_owned())
+                    .collect();
+            }
             return true;
         })?;
-        // println!("lines: {:?}", lines);
+        println!("j aft: {:?}", files_paths);
+
+        for i in files_paths {
+            let file_abs_path = format!(
+                "{}{}",
+                repo.repo.path().to_str().unwrap().replace("/.git", ""),
+                i
+            );
+            let file_path = Path::new(&file_abs_path);
+            let file = fs::read_to_string(file_path).unwrap();
+            lines.push(GitDiff {
+                diff_content: format!("diff --git a/{} b/{}", i, i),
+                new_line: None,
+                old_line: None,
+                origin: 'F',
+            });
+
+            for (idx, line) in file.lines().enumerate() {
+                lines.push(GitDiff {
+                    diff_content: format!("{}\n", line.to_owned()),
+                    new_line: Some(idx as u32 + 1),
+                    old_line: Some(idx as u32 + 1),
+                    origin: '+',
+                });
+            }
+        }
+        // TODO add new files which dont show on git diff
+
         return Ok(lines);
     }
     Err(GitError::RepoNotFound)

@@ -31,6 +31,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  isInput: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 function getStatusColor(status: string) {
@@ -48,17 +52,20 @@ const colorStatus = getStatusColor(props.status);
     <span :class="`${colorStatus} left-0 mr-2 font-bold`"
       >[{{ status.charAt(0) }}]</span
     >
-    <input
-      :id="fileName"
-      :ref="fileName"
-      type="checkbox"
-      class="accent-pink-500 mr-2"
-      :checked="props.checked"
-      @input="(event)=>updateChecked((event.target as HTMLInputElement).checked)"
-    />
-    <p :for="fileName" class="hover:text-slate-400" @click="displayFile">
+
+    <label :for="fileName" class="mr-2 hover:text-slate-400 flex justify-center">
+      <input
+        v-if="isInput"
+        :id="fileName"
+        :ref="fileName"
+        type="checkbox"
+        class="accent-pink-500 mr-2"
+        :checked="props.checked"
+        @input="(event)=>updateChecked((event.target as HTMLInputElement).checked)"
+        @click="displayFile"
+      />
       {{ fileName }}
-    </p>
+    </label>
   </div>
 </template>
 

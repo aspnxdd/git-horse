@@ -11,7 +11,7 @@ const props = defineProps({
   },
   filesModifiedNames: {
     type: Array as PropType<
-      { fileName: string; status: keyof typeof GitStatus }[]
+      { fileName: string; status?: keyof typeof GitStatus }[]
     >,
     default: null,
   },
@@ -24,26 +24,50 @@ const props = defineProps({
 const gitDiffContent = ref<GitDiff[]>([]);
 const repoDiffLinesFiltered = ref<Record<string, GitDiff[]>>({});
 
+function _getOriginAndCurrentFileName(diffContent: string) {
+  const originName = diffContent.split(" ")[2].split("/").slice(1).join();
+  const currentName = diffContent
+    .split(" ")[3]
+    .split("/")
+    .slice(1)
+    .join("/")
+    .split("\n")[0];
+  return [originName, currentName];
+}
+
 function filterFileDiff() {
   const filtered: Record<string, GitDiff[]> = {};
   const breaklines: {
     fileName: string;
-    breakline: number;
+    fileStartsAtLine: number;
   }[] = [];
-  for (const [index, diff] of props.repoDiffLines.entries()) {
-    const fileName = props.filesModifiedNames.filter((e) => {
-      return diff.diffContent.includes(e.fileName) && diff.origin == "F";
-    })[0]?.fileName;
-    if (!fileName) continue;
-    breaklines.push({ fileName, breakline: index });
+  for (let idx = 0; idx < props.repoDiffLines.length; idx++) {
+    const diff = props.repoDiffLines[idx];
+    const fileName = props.filesModifiedNames.find(({ fileName }) => {
+      if (diff.origin !== "F") {
+        return false;
+      }
+      const [originName, currentName] = _getOriginAndCurrentFileName(
+        diff.diffContent
+      );
+      console.log({ originName, currentName, fileName });
+      return originName === fileName || currentName === fileName;
+    })?.fileName;
+    if (!fileName) {
+      continue;
+    }
+    breaklines.push({ fileName, fileStartsAtLine: idx });
   }
-
-  for (const [index, { fileName, breakline }] of breaklines.entries()) {
+  console.log({ breaklines });
+  for (let idx = 0; idx < breaklines.length; idx++) {
+    const { fileName, fileStartsAtLine } = breaklines[idx];
     props.repoDiffLines.forEach((diff, i) => {
-      if (diff.origin == "F") return;
+      if (diff.origin === "F") {
+        return;
+      }
       const nextBreakline =
-        breaklines[index + 1]?.breakline ?? props.repoDiffLines.length;
-      if (i > breakline && i <= nextBreakline) {
+        breaklines[idx + 1]?.fileStartsAtLine ?? props.repoDiffLines.length;
+      if (i > fileStartsAtLine && i <= nextBreakline) {
         if (filtered[fileName]?.length > 0) {
           filtered[fileName].push(diff);
         } else {
@@ -52,10 +76,12 @@ function filterFileDiff() {
       }
     });
   }
+  console.log({ filtered });
   repoDiffLinesFiltered.value = filtered;
 }
 
 watch(props, () => {
+  console.log({ props });
   filterFileDiff();
   displayFileDiff();
 });
@@ -71,7 +97,10 @@ const displayFileDiff = () => {
     v-if="repoDiffLines.length > 0 && filesModifiedNames.length > 0"
     class="flex flex-col items-start mt-2"
   >
-    <h1 class="font-bold text-lg">Changed file ({{ props.selectedFile }})</h1>
+    <h1 class="font-bold text-lg">
+      Changed file [<i class="text-[#cfcf44]">{{ props.selectedFile }}</i
+      >]
+    </h1>
     <code
       v-if="repoDiffLines.length > 0"
       class="list-none p-2 bg-[#4c4653] rounded-xl m-2 text-xs overflow-scroll h-[50vh] break-words w-[90%] mb-10"
@@ -79,16 +108,16 @@ const displayFileDiff = () => {
       <table class="table-auto w-full text-left">
         <tbody>
           <tr
-            v-for="(file, index) in gitDiffContent"
-            :key="index"
+            v-for="file in gitDiffContent"
+            :key="file.origin + file.diffContent + file.newLine + file.oldLine"
             :class="{
-              'bg-green-800': file.origin == '+',
-              'bg-red-700': file.origin == '-',
+              'bg-green-800': file.origin === '+',
+              'bg-red-700': file.origin === '-',
             }"
           >
-            <td>{{ file.oldLine }}</td>
-            <td>{{ file.newLine }}</td>
-            <td>{{ file.origin }}</td>
+            <td class="w-6">{{ file.oldLine }}</td>
+            <td class="w-6">{{ file.newLine }}</td>
+            <td class="w-6">{{ file.origin }}</td>
             <td>{{ file.diffContent }}</td>
           </tr>
         </tbody>

@@ -9,6 +9,8 @@ export const GitStatusCodes = {
   256: GitStatus.Modified,
   512: GitStatus.Deleted,
   128: GitStatus.New,
+  2: GitStatus.Modified,
+  1: GitStatus.New,
 };
 
 export const GitStatusColors = {
