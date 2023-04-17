@@ -39,29 +39,10 @@ pub fn do_fetch<'a>(
     // Always fetch all tags.
     // Perform a download and also update tips
     fo.download_tags(AutotagOption::All);
-    println!("Fetching {} for repo", remote.name().unwrap());
     remote.fetch(refs, Some(&mut fo), None)?;
 
     // If there are local objects (we got a thin pack), then tell the user
     // how many objects we saved from having to cross the network.
-    let stats = remote.stats();
-    if stats.local_objects() > 0 {
-        println!(
-            "\rReceived {}/{} objects in {} bytes (used {} local \
-             objects)",
-            stats.indexed_objects(),
-            stats.total_objects(),
-            stats.received_bytes(),
-            stats.local_objects()
-        );
-    } else {
-        println!(
-            "\rReceived {}/{} objects in {} bytes",
-            stats.indexed_objects(),
-            stats.total_objects(),
-            stats.received_bytes()
-        );
-    }
 
     let fetch_head = repo.find_reference("FETCH_HEAD")?;
     Ok(repo.reference_to_annotated_commit(&fetch_head)?)
@@ -82,7 +63,6 @@ pub fn fast_forward(
         name,
         fetch_commit.id()
     );
-    println!("{}", msg);
     reference.set_target(fetch_commit.id(), &msg)?;
     repo.set_head(&name)?;
     repo.checkout_head(Some(build::CheckoutBuilder::default().force()))?;
@@ -102,7 +82,6 @@ pub fn normal_merge(
     let mut idx = repo.merge_trees(&ancestor, &local_tree, &remote_tree, None)?;
 
     if idx.has_conflicts() {
-        println!("Merge conflicts detected...");
         repo.checkout_index(Some(&mut idx), None)?;
         return Ok(());
     }
@@ -135,7 +114,6 @@ pub fn do_merge<'a>(
     let (merge_analysis, _) = repo.merge_analysis(&[&fetch_commit])?;
     // 2. Do the appropriate merge
     if merge_analysis.is_fast_forward() {
-        println!("Doing a fast forward");
         // do a fast forward
         let refname = format!("refs/heads/{}", remote_branch);
         match repo.find_reference(&refname) {
@@ -169,7 +147,6 @@ pub fn do_merge<'a>(
         normal_merge(&repo, &head_commit, &fetch_commit)?;
         return Ok(());
     }
-    println!("Already up to date");
 
     return Ok(());
 }

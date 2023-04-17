@@ -28,7 +28,6 @@ impl Repo {
         if let Ok(branch) = self.repo.find_branch(&branch_name, BranchType::Local) {
             if branch.get().is_branch() {
                 let branch_ref = branch.get().name().unwrap();
-                println!("branch_ref: {}", branch_ref);
                 self.repo.set_head(&branch_ref)?;
                 return Ok(());
             }
@@ -38,7 +37,6 @@ impl Repo {
         if let Ok(branch) = self.repo.find_branch(&branch_name, BranchType::Remote) {
             if branch.get().is_remote() {
                 let branch_ref = branch.get().name().unwrap();
-                println!("branch_ref: {}", branch_ref);
                 // let new_branch = repo.branch(&branch_ref, BranchType::Local)?;
                 self.repo.set_head(&branch_ref)?;
                 return Ok(());

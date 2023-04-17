@@ -28,7 +28,6 @@ const INTERESTING_STAGED: git2::Status = git2::Status::from_bits_truncate(
 );
 #[command]
 pub fn open(state: AppArg, path: &str) -> Result<String, GitError> {
-    println!("path = {}", path);
     match git::Repo::open(path) {
         Ok(repo) => {
             let mut handle = state.repo.lock().unwrap();
@@ -43,7 +42,6 @@ pub fn open(state: AppArg, path: &str) -> Result<String, GitError> {
                 .to_string());
         }
         Err(e) => {
-            println!("{:#?}", e);
             return Err(GitError::RepoNotFound);
         }
     }
@@ -145,17 +143,11 @@ pub fn fetch_remote(state: AppArg, remote: Option<String>) -> Result<(), GitErro
     let repo = repo.as_ref();
     if let Some(repo) = repo {
         // Figure out whether it's a named remote or a URL
-        println!(
-            "Fetching {} for repo {}",
-            remote,
-            repo.repo.path().to_str().unwrap()
-        );
         let mut cb = RemoteCallbacks::new();
         let mut remote = repo
             .repo
             .find_remote(remote)
             .or_else(|_| repo.repo.remote_anonymous(remote))?;
-        println!("remote: {:#?}", remote.name().unwrap());
         cb.sideband_progress(|data| {
             print!("remote: {}", str::from_utf8(data).unwrap());
             io::stdout().flush().unwrap();
@@ -202,28 +194,7 @@ pub fn fetch_remote(state: AppArg, remote: Option<String>) -> Result<(), GitErro
         let mut fo = FetchOptions::new();
         fo.remote_callbacks(cb);
         remote.download(&[] as &[String], Some(&mut fo))?;
-        {
-            // If there are local objects (we got a thin pack), then tell the user
-            // how many objects we saved from having to cross the network.
-            let stats = remote.stats();
-            if stats.local_objects() > 0 {
-                println!(
-                    "\rReceived {}/{} objects in {} bytes (used {} local \
-                     objects)",
-                    stats.indexed_objects(),
-                    stats.total_objects(),
-                    stats.received_bytes(),
-                    stats.local_objects()
-                );
-            } else {
-                println!(
-                    "\rReceived {}/{} objects in {} bytes",
-                    stats.indexed_objects(),
-                    stats.total_objects(),
-                    stats.received_bytes()
-                );
-            }
-        }
+
         // Disconnect the underlying connection to prevent from idling.
         remote.disconnect()?;
         // Update the references in the remote's namespace to point to the right
@@ -344,12 +315,10 @@ pub fn get_repo_diff(state: AppArg) -> Result<Stats, GitError> {
             Ok(diff) => match diff.stats() {
                 Ok(stats) => stats,
                 Err(e) => {
-                    println!("get stats failed : {:?}", e);
                     return Err(GitError::GetStatsFailed);
                 }
             },
             Err(e) => {
-                println!("get diff failed : {:?}", e);
                 return Err(GitError::GetDiffFailed);
             }
         };
@@ -372,15 +341,11 @@ pub fn add_all(state: AppArg) -> Result<(), GitError> {
         let mut index = repo.repo.index()?;
         index.add_all(["*"].iter(), git2::IndexAddOption::DEFAULT, None)?;
         index.write()?;
-        for s in repo.repo.statuses(None).unwrap().iter() {
-            if s.status() != git2::Status::IGNORED {
-                println!("{:?}", s.path());
-            }
-        }
         return Ok(());
     }
     Err(GitError::RepoNotFound)
 }
+
 #[command]
 pub fn get_staged_files(state: AppArg) -> Result<Vec<FileStatus>, GitError> {
     let repo = state.repo.clone();
@@ -577,7 +542,6 @@ pub fn git_diff(state: AppArg) -> Result<Vec<GitDiff>, GitError> {
                     }
                 }
             });
-        println!("j bef: {:?}", files_paths);
         let diff = repo
             .repo
             .diff_tree_to_workdir_with_index(Some(&tree), Some(&mut diff_opts))?;
@@ -603,7 +567,6 @@ pub fn git_diff(state: AppArg) -> Result<Vec<GitDiff>, GitError> {
             }
             return true;
         })?;
-        println!("j aft: {:?}", files_paths);
 
         for file_path in files_paths {
             let file_abs_path = get_absolute_path_from_relative(repo, &file_path);
@@ -719,8 +682,6 @@ pub fn get_pending_commits_to_pull(state: AppArg) -> Result<u32, GitError> {
 #[command]
 pub fn db_insert(key: Option<String>, value: Option<String>) -> Result<(), SledError> {
     let db = db::Db::new()?;
-    println!("key {:#?}", key);
-    println!("value {:#?}", value);
     db.insert(key.unwrap().as_str(), value.unwrap().as_str())?;
     return Ok(());
 }
