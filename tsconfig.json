@@ -3,6 +3,7 @@
     "paths": {
       "@components/Layout": ["src/components/Layout/index.ts"],
       "@components/Modal": ["src/components/Modal/index.ts"],
+      "@components/Files": ["src/components/Files/index.ts"],
       "@stores": ["src/stores/index.ts"],
       "@lib/*": ["src/lib/*"],
       "@types": ["src/shared/types.tsypes.ts"],

@@ -7,8 +7,8 @@ import type {
 
 import { useRepoStore } from "@stores";
 import { invoke } from "@tauri-apps/api/tauri";
-import { FileView } from "./index";
-import FileDiff from "../FileDiff.vue";
+import { ChangedFiles, StagedFiles } from "@components/Files";
+import FileDiff from "../Files/FileDiff.vue";
 import { GitStatus, GitStatusCodes } from "src/shared/constants";
 
 type RepoDiffStats = {
@@ -20,8 +20,6 @@ type RepoDiffStats = {
 const repoStore = useRepoStore();
 const filesModified = ref<FileStatusWithStatusLabel[]>([]);
 const filesStaged = ref<FileStatusWithStatusLabel[]>([]);
-const isAllFilesChangedChecked = ref<boolean>(false);
-const commitMessage = ref<string | null>(null);
 const repoDiffStats = ref<RepoDiffStats>({
   deletions: 0,
   filesChanged: 0,
@@ -29,6 +27,7 @@ const repoDiffStats = ref<RepoDiffStats>({
 });
 const repoDiffLines = ref<GitDiff[]>([]);
 const selectedFile = ref<string | null>(null);
+const isAllFilesChangedChecked = ref<boolean>(false);
 
 async function gitDiff() {
   const res = await invoke<GitDiff[]>("git_diff");
@@ -79,10 +78,11 @@ async function getRepoDiff() {
 }
 
 function toggleAll() {
+  isAllFilesChangedChecked.value = !isAllFilesChangedChecked.value;
   filesModified.value = (filesModified.value ?? []).map((fileModified) => {
     return {
       ...fileModified,
-      selected: !isAllFilesChangedChecked.value,
+      selected: isAllFilesChangedChecked.value,
     };
   });
 }
@@ -93,67 +93,6 @@ function updateFilesModifiedSelection(newValue: boolean, index: number) {
   if (filesModified.value.every(({ selected }) => !!selected)) {
     isAllFilesChangedChecked.value = true;
   }
-}
-
-function displayFileDiffModified(index: number) {
-  if (filesModified.value.length === 0) {
-    return;
-  }
-  selectedFile.value = filesModified.value[index].fileName;
-}
-
-function displayFileDiffStaged(index: number) {
-  if (filesStaged.value.length === 0) {
-    return;
-  }
-  selectedFile.value = filesStaged.value[index].fileName;
-}
-
-async function add() {
-  if (isAllFilesChangedChecked.value) {
-    await invoke("add_all");
-  } else {
-    const files = (filesModified.value ?? []).reduce(
-      (acc, { fileName, selected }) => {
-        return selected ? [...acc, fileName] : acc;
-      },
-      [] as string[]
-    );
-
-    await invoke("add", { files });
-  }
-  await getModifiedFiles();
-  await getStagedFiles();
-}
-
-async function discard() {
-  if (isAllFilesChangedChecked.value) {
-    const files = (filesModified.value ?? []).reduce((acc, { fileName }) => {
-      return [...acc, fileName];
-    }, [] as string[]);
-    await invoke("discard", { files });
-  } else {
-    const files = (filesModified.value ?? []).reduce(
-      (acc, { fileName, selected }) => {
-        return selected ? [...acc, fileName] : acc;
-      },
-      [] as string[]
-    );
-
-    await invoke("discard", { files });
-  }
-  await getModifiedFiles();
-  await getStagedFiles();
-}
-
-async function commit() {
-  if (!commitMessage.value) {
-    alert("Please enter commit message");
-    return;
-  }
-  await invoke("commit", { message: commitMessage.value });
-  await getStagedFiles();
-  selectedFile.value = filesModified.value[0]?.fileName;
 }
 
 watch(repoStore, async () => {
@@ -186,103 +125,23 @@ onMounted(() => {
   </main>
   <main v-else class="w-full p-4 text-slate-100">
     <div class="flex flex-wrap w-full gap-3">
-      <section
-        v-if="filesModified.length > 0"
-        class="flex flex-col items-start"
-      >
-        <span class="flex items-center justify-center gap-2 p-2">
-          <input
-            type="checkbox"
-            class="accent-pink-500"
-            :checked="isAllFilesChangedChecked"
-            @click="toggleAll"
-            @change="
-              () => (isAllFilesChangedChecked = !isAllFilesChangedChecked)
-            "
-          />
-          <h1 class="font-bold text-lg">
-            Files changed ({{ filesModified?.length }})
-          </h1>
-        </span>
-        <div class="flex flex-col text-left ml-4">
-          <span> 🟢 Insertions: {{ repoDiffStats?.insertions }}</span>
-          <span> 🔴 Deletions: {{ repoDiffStats?.deletions }}</span>
-        </div>
-        <ul
-          class="list-none p-1 bg-[#4c4653] rounded-xl m-2 h-28 min-w-[20rem] text-xs overflow-y-scroll resize-y"
-        >
-          <li
-            v-for="(file, idx) in filesModified"
-            :key="file.fileName + file.selected + file.status"
-            class="text-left p-1"
-          >
-            <FileView
-              :file-name="file.fileName"
-              :status="file.status"
-              :checked="file.selected"
-              @update:checked="
-                (checkedValue) =>
-                  updateFilesModifiedSelection(checkedValue, idx)
-              "
-              @display="() => displayFileDiffModified(idx)"
-            />
-          </li>
-        </ul>
-        <div class="flex gap-4">
-          <button
-            :disabled="filesModified.every((v) => !v.selected)"
-            class="px-4 ml-3 font-bold disabled:hover:bg-slate-400 disabled:bg-slate-400 text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
-            @click="add"
-          >
-            Add ({{ filesModified.filter((v) => v.selected).length }})
-          </button>
-          <button
-            :disabled="filesModified.every((v) => !v.selected)"
-            class="px-4 ml-3 font-bold disabled:hover:bg-slate-400 disabled:bg-slate-400 text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
-            @click="discard"
-          >
-            Discard ({{ filesModified.filter((v) => v.selected).length }})
-          </button>
-        </div>
-      </section>
-      <section
-        v-if="filesStaged.length > 0"
-        class="flex flex-col items-start w-2/5"
-      >
-        <span class="flex items-center justify-center gap-2 p-2">
-          <h1 class="font-bold text-lg">Staged changes:</h1>
-        </span>
-        <ul class="list-none space-y-2">
-          <li
-            v-for="(stagedFileName, idx) in filesStaged"
-            :key="stagedFileName.fileName"
-            class="text-left p-2 text-xs bg-[#21325a] rounded-xl m-2"
-            @click="
-              () => {
-                displayFileDiffStaged(idx);
-              }
-            "
-          >
-            <FileView
-              :file-name="stagedFileName.fileName"
-              :status="stagedFileName.status"
-              :is-input="false"
-            />
-          </li>
-        </ul>
-        <textarea
-          type="text"
-          class="rounded-lg my-2 p-1 text-black h-40 text-left text-clip w-full text-sm"
-          placeholder="Commit message"
-          @change="(e)=>commitMessage=(e.target as HTMLTextAreaElement).value"
-        />
-        <button
-          class="px-4 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
-          @click="commit"
-        >
-          Commit to {{ repoStore.activeBranch }}
-        </button>
-      </section>
+      <ChangedFiles
+        :files-modified="filesModified"
+        :is-all-files-changed-checked="isAllFilesChangedChecked"
+        :repo-diff-lines="repoDiffLines"
+        :repo-diff-stats="repoDiffStats"
+        @update-files-modified-selection="updateFilesModifiedSelection"
+        @toggle-all="toggleAll"
+        @get-modified-files="getModifiedFiles"
+        @get-staged-files="getStagedFiles"
+      />
+      <StagedFiles
+        :files-staged="filesStaged"
+        :repo-diff-lines="repoDiffLines"
+        :repo-diff-stats="repoDiffStats"
+        @get-staged-files="getStagedFiles"
+        @get-modified-files="getModifiedFiles"
+      />
     </div>
 
     <hr class="border-0 h-4" />
@@ -290,7 +149,6 @@ onMounted(() => {
     <FileDiff
       :repo-diff-lines="repoDiffLines"
       :files-modified-names="[...filesStaged, ...filesModified]"
-      :selected-file="selectedFile"
     />
   </main>
 </template>

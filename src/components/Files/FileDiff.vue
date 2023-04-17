@@ -3,6 +3,7 @@ import type { PropType } from "vue";
 import type { GitDiff } from "src/shared/types";
 
 import { GitStatus } from "src/shared/constants";
+import { useRepoStore } from "@stores";
 
 const props = defineProps({
   repoDiffLines: {
@@ -15,11 +16,9 @@ const props = defineProps({
     >,
     default: null,
   },
-  selectedFile: {
-    type: String as PropType<string | null>,
-    default: null,
-  },
 });
+
+const repoStore = useRepoStore();
 
 const gitDiffContent = ref<GitDiff[]>([]);
 const repoDiffLinesFiltered = ref<Record<string, GitDiff[]>>({});
@@ -50,7 +49,6 @@ function filterFileDiff() {
       const [originName, currentName] = _getOriginAndCurrentFileName(
         diff.diffContent
       );
-      console.log({ originName, currentName, fileName });
       return originName === fileName || currentName === fileName;
     })?.fileName;
     if (!fileName) {
@@ -58,7 +56,6 @@ function filterFileDiff() {
     }
     breaklines.push({ fileName, fileStartsAtLine: idx });
   }
-  console.log({ breaklines });
   for (let idx = 0; idx < breaklines.length; idx++) {
     const { fileName, fileStartsAtLine } = breaklines[idx];
     props.repoDiffLines.forEach((diff, i) => {
@@ -76,19 +73,17 @@ function filterFileDiff() {
       }
     });
   }
-  console.log({ filtered });
   repoDiffLinesFiltered.value = filtered;
 }
 
 watch(props, () => {
-  console.log({ props });
   filterFileDiff();
   displayFileDiff();
 });
 
 const displayFileDiff = () => {
-  if (!props.selectedFile) return;
-  gitDiffContent.value = repoDiffLinesFiltered.value[props.selectedFile];
+  if (!repoStore.selectedFile) return;
+  gitDiffContent.value = repoDiffLinesFiltered.value[repoStore.selectedFile];
 };
 </script>
 
@@ -98,7 +93,7 @@ const displayFileDiff = () => {
     class="flex flex-col items-start mt-2"
   >
     <h1 class="font-bold text-lg">
-      Changed file [<i class="text-[#cfcf44]">{{ props.selectedFile }}</i
+      Changed file [<i class="text-[#cfcf44]">{{ repoStore.selectedFile }}</i
       >]
     </h1>
     <code
