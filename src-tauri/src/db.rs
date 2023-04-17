@@ -10,6 +10,10 @@ pub struct Repo {
     name: String,
     path: String,
 }
+
+const TMP_PATH: &str = "tmp/db";
+const LAST_OPENED_REPO: &str = "last_opened_repo";
+
 impl Db {
     pub fn new() -> Result<Self, SledError> {
         let dir = std::env::current_dir().unwrap();
@@ -17,17 +21,17 @@ impl Db {
         let mut dir: Vec<&str> = dir.split("\\").collect();
         dir.pop().unwrap();
         let dir = dir.join("/");
-        let dir = format!("{}/{}", dir, "tmp/db");
+        let dir = format!("{}/{}", dir, TMP_PATH);
         let db = sled::open(dir)?;
         Ok(Db { db })
     }
     pub fn write_last_opened_repo(&self, repo: &str) -> Result<(), SledError> {
-        let key = "last_opened_repo";
+        let key = LAST_OPENED_REPO;
         self.db.insert(key, repo)?;
         Ok(())
     }
     pub fn read_last_opened_repo(&self) -> Result<String, SledError> {
-        let key = "last_opened_repo";
+        let key = LAST_OPENED_REPO;
         let value = self.get(key)?;
         Ok(value)
     }

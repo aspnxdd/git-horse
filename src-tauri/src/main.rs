@@ -51,7 +51,7 @@ fn main() {
             let event_name = event.menu_item_id();
             match event_name {
                 "Online Documentation" => {
-                    let url = "https://github.com/Uninen/tauri-vue-template".to_string();
+                    let url = "https://github.com/aspnxdd/git-horse".to_string();
                     shell::open(&event.window().shell_scope(), url, None).unwrap();
                 }
                 _ => {}
