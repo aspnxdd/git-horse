@@ -15,6 +15,7 @@ import {
   BiArrowUpSquare,
   BiArrowDownSquare,
   SiSpinrilla,
+  ViFileTypeVscode,
 } from "oh-vue-icons/icons";
 
 addIcons(
@@ -28,7 +29,8 @@ addIcons(
   PiHorsea,
   BiArrowUpSquare,
   BiArrowDownSquare,
-  SiSpinrilla
+  SiSpinrilla,
+  ViFileTypeVscode
 );
 
 import "./assets/main.postcss";

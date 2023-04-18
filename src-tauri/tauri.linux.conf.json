@@ -50,7 +50,7 @@
         "scope": [
           {
             "name": "vscode",
-            "cmd": "code.cmd",
+            "cmd": "code",
             "args": true
           }
         ]

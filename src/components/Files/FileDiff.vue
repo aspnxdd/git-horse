@@ -2,6 +2,7 @@
 import type { PropType } from "vue";
 import type { GitDiff } from "src/shared/types";
 
+import { Command } from "@tauri-apps/api/shell";
 import { GitStatus } from "src/shared/constants";
 import { useRepoStore } from "@stores";
 
@@ -85,17 +86,31 @@ const displayFileDiff = () => {
   if (!repoStore.selectedFile) return;
   gitDiffContent.value = repoDiffLinesFiltered.value[repoStore.selectedFile];
 };
+
+function openFileInVsCode() {
+  if (!repoStore.selectedFile || !repoStore.repo) return;
+  new Command("vscode", [
+    `${repoStore.repo}/${repoStore.selectedFile}`,
+  ]).spawn();
+}
 </script>
 
 <template>
-  <section
-    v-if="repoStore.selectedFile"
-    class="flex flex-col items-start mt-2"
-  >
-    <h1 class="font-bold text-lg">
-      File [<i class="text-[#cfcf44]">{{ repoStore.selectedFile }}</i
-      >]
-    </h1>
+  <section v-if="repoStore.selectedFile" class="flex flex-col items-start mt-2">
+    <div class="flex flex-row items-center gap-4">
+      <h1 class="font-bold text-lg">
+        File [<i class="text-[#cfcf44]">{{ repoStore.selectedFile }}</i
+        >]
+      </h1>
+      <button
+        class="text-sm flex justify-center items-center gap-2 hover:text-slate-300"
+        @click="openFileInVsCode"
+      >
+        <i><strong> View in</strong></i>
+
+        <v-icon name="vi-file-type-vscode" scale="1.2" />
+      </button>
+    </div>
     <code
       v-if="repoDiffLines.length > 0"
       class="list-none p-2 bg-[#4c4653] rounded-xl m-2 text-sm overflow-auto h-[50vh] break-words w-[90%] mb-10"

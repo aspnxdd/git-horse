@@ -51,9 +51,7 @@ async function commit() {
 </script>
 
 <template>
-  <section
-    class="flex flex-col items-start w-2/5"
-  >
+  <section class="flex flex-col items-start w-2/5">
     <span class="flex items-center justify-center gap-2 p-2">
       <h1 class="font-bold text-lg">Staged changes:</h1>
     </span>
