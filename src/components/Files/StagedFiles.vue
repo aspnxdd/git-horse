@@ -31,7 +31,7 @@ function getModifiedFiles() {
 }
 
 const repoStore = useRepoStore();
-const commitMessage = ref<string | null>(null);
+const commitMessage = ref<string>("");
 
 function displayFileDiffStaged(index: number) {
   if (props.filesStaged.length === 0) {
@@ -59,7 +59,7 @@ async function commit() {
       <h1 class="font-bold text-lg">Staged changes:</h1>
     </span>
     <ul
-    class="list-none p-1 bg-[#4c4653] rounded-xl m-2 h-28 min-w-[20rem] text-xs overflow-y-scroll resize-y"
+      class="list-none p-1 bg-[#4c4653] rounded-xl m-2 h-28 min-w-[20rem] text-xs overflow-y-scroll resize-y"
     >
       <li
         v-for="(stagedFileName, idx) in filesStaged"
@@ -78,17 +78,30 @@ async function commit() {
         />
       </li>
     </ul>
-    <textarea
-      type="text"
-      class="rounded-lg my-2 p-1 text-black h-40 text-left text-clip w-full text-sm"
-      placeholder="Commit message"
-      @change="(e)=>commitMessage=(e.target as HTMLTextAreaElement).value"
-    />
-    <button
-      class="px-4 font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
-      @click="commit"
-    >
-      Commit to {{ repoStore.activeBranch }}
-    </button>
+    <div class="relative flex justify-start flex-col w-[21rem] items-center">
+      <textarea
+        v-model="commitMessage"
+        type="text"
+        :class="[
+          'rounded-lg  my-2 p-1 text-black h-40 text-left text-clip w-full text-sm border-2',
+          commitMessage && commitMessage.length > 50
+            ? 'border-yellow-500  outline-yellow-500'
+            : 'border-transparent',
+        ]"
+        placeholder="Commit message"
+      />
+      <span
+        v-if="commitMessage && commitMessage.length > 50"
+        class="text-xs absolute text-red-500 rounded-b-lg bg-yellow-500 p-1 w-full bottom-8"
+      >
+        <strong>Your commit message should be less than 50 characters.</strong>
+      </span>
+      <button
+        class="w-[50%] font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
+        @click="commit"
+      >
+        Commit to {{ repoStore.activeBranch }}
+      </button>
+    </div>
   </section>
 </template>

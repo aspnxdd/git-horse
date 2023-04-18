@@ -57,6 +57,9 @@ async function getModifiedFiles() {
   });
   filesModified.value = fileStatuses;
   await getRepoDiff();
+  if (repoStore.selectedFile === null) {
+    repoStore.setSelectedFile(filesModified.value[0]?.fileName);
+  }
 }
 
 async function getStagedFiles() {
@@ -71,6 +74,9 @@ async function getStagedFiles() {
     };
   });
   filesStaged.value = fileStatuses;
+  if (repoStore.selectedFile === null) {
+    repoStore.setSelectedFile(filesStaged.value[0]?.fileName);
+  }
 }
 
 async function getRepoDiff() {

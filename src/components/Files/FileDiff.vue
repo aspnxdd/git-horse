@@ -93,12 +93,12 @@ const displayFileDiff = () => {
     class="flex flex-col items-start mt-2"
   >
     <h1 class="font-bold text-lg">
-      Changed file [<i class="text-[#cfcf44]">{{ repoStore.selectedFile }}</i
+      File [<i class="text-[#cfcf44]">{{ repoStore.selectedFile }}</i
       >]
     </h1>
     <code
       v-if="repoDiffLines.length > 0"
-      class="list-none p-2 bg-[#4c4653] rounded-xl m-2 text-xs overflow-scroll h-[50vh] break-words w-[90%] mb-10"
+      class="list-none p-2 bg-[#4c4653] rounded-xl m-2 text-sm overflow-auto h-[50vh] break-words w-[90%] mb-10"
     >
       <table class="table-auto w-full text-left">
         <tbody>
@@ -113,7 +113,7 @@ const displayFileDiff = () => {
             <td class="w-6">{{ file.oldLine }}</td>
             <td class="w-6">{{ file.newLine }}</td>
             <td class="w-6">{{ file.origin }}</td>
-            <td>{{ file.diffContent }}</td>
+            <td class="consolas">{{ file.diffContent }}</td>
           </tr>
         </tbody>
       </table>
@@ -134,5 +134,9 @@ nav {
     rgb(38, 172, 20) 100%
   );
   height: calc(100vh - 2rem);
+}
+
+.consolas {
+  font-family: "Consolas", "Courier New", Courier, monospace;
 }
 </style>

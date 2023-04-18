@@ -69,9 +69,7 @@ async function add() {
 
 async function discard() {
   if (props.isAllFilesChangedChecked) {
-    const files = (props.filesModified ?? []).reduce((acc, { fileName }) => {
-      return [...acc, fileName];
-    }, [] as string[]);
+    const files = (props.filesModified ?? []).map(({ fileName }) => fileName);
     await invoke("discard", { files });
   } else {
     const files = (props.filesModified ?? []).reduce(
@@ -85,6 +83,10 @@ async function discard() {
   }
   await getModifiedFiles();
 }
+
+const selectedModifiedFilesAmount = computed(() => {
+  return props.filesModified.filter((v) => v.selected).length;
+});
 </script>
 <template>
   <section v-if="filesModified.length > 0" class="flex flex-col items-start">
@@ -128,14 +130,14 @@ async function discard() {
         class="px-4 ml-3 font-bold disabled:hover:bg-slate-400 disabled:bg-slate-400 text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
         @click="add"
       >
-        Add ({{ filesModified.filter((v) => v.selected).length }})
+        Add ({{ selectedModifiedFilesAmount }})
       </button>
       <button
         :disabled="filesModified.every((v) => !v.selected)"
         class="px-4 ml-3 font-bold disabled:hover:bg-slate-400 disabled:bg-slate-400 text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
         @click="discard"
       >
-        Discard ({{ filesModified.filter((v) => v.selected).length }})
+        Discard ({{ selectedModifiedFilesAmount }})
       </button>
     </div>
   </section>

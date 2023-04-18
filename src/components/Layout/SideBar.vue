@@ -14,6 +14,10 @@ const modalsStore = useModalsStore();
 const pendingCommitsToPush = ref<null | number>(null);
 const pendingCommitsToPull = ref<null | number>(null);
 
+const isFetching = ref(false);
+const isPulling = ref(false);
+const isPushing = ref(false);
+
 async function openRepo(path: string | null) {
   if (!path) {
     return;
@@ -90,17 +94,38 @@ async function getRemotes() {
   console.log("remotes:", await invoke("get_remotes"));
 }
 async function fetchRemote() {
-  await invoke("fetch_remote");
-  await resfreshBranches();
+  try {
+    isFetching.value = true;
+    await invoke("fetch_remote");
+    await resfreshBranches();
+  } catch (e) {
+    console.log(e);
+  } finally {
+    isFetching.value = false;
+  }
 }
 async function pushRemote() {
-  await invoke("push_remote");
-  await resfreshBranches();
+  try {
+    isPushing.value = true;
+    await invoke("push_remote");
+    await resfreshBranches();
+  } catch (e) {
+    console.log(e);
+  } finally {
+    isPushing.value = false;
+  }
 }
 
 async function pullRemote() {
-  await invoke("pull_from_remote");
-  await resfreshBranches();
+  try {
+    isPulling.value = true;
+    await invoke("pull_from_remote");
+    await resfreshBranches();
+  } catch (e) {
+    console.log(e);
+  } finally {
+    isPulling.value = false;
+  }
 }
 onMounted(() => {
   setInterval(async () => {
@@ -118,7 +143,7 @@ watchEffect(() => {
 
 <template>
   <nav
-    class="relative left-0 top-0 h-screen w-60 flex flex-col text-white cursor-default"
+    class="relative left-0 top-0 h-screen w-64 flex flex-col text-white cursor-default"
   >
     <SearchBar />
     <h1 class="font-bold text-xl flex justify-center items-center gap-3 my-4">
@@ -140,7 +165,7 @@ watchEffect(() => {
     </button>
     <button
       class="text-black bg-slate-50 m-2 rounded-md font-bold hover:bg-slate-300 transition-colors duration-150 ease-in-out mx-4 p-1"
-      @click="modalsStore.setSearchModalOpen(true)"
+      @click="() => modalsStore.setSearchModalOpen(true)"
     >
       <span class="flex relative gap-3">
         <i class="left-0">
@@ -150,42 +175,37 @@ watchEffect(() => {
       </span>
     </button>
 
-    <div v-if="repoName" class="bg-[#605d63] m-2 rounded-md mx-4">
-      <h1 class="font-semibold text-left p-2">Active branches</h1>
-      <hr class="border-b-[1px] mx-4 mb-1" />
-
+    <div
+      v-if="repoName"
+      class="bg-[#605d63] m-2 rounded-md mx-4 flex flex-col overflow-auto h-[15rem]"
+    >
+      <h1 class="font-semibold text-left p-2 underline underline-offset-8">
+        Active branches
+      </h1>
       <div
         v-for="branch in localBranchesNames"
         :key="branch"
-        class="list-none text-left w-full"
+        class="text-left w-full text-black transition-colors duration-150 ease-in-out cursor-default font-semibold pl-2"
+        as="button"
+        :class="{
+          'bg-[#d3ccdc]': branch === activeBranchName,
+          'hover:text-slate-100': branch !== activeBranchName,
+        }"
+        @click="() => checkoutBranch(branch)"
       >
-        <div
-          as="button"
-          class="text-black transition-colors duration-150 ease-in-out cursor-default font-semibold pl-2"
-          :class="{
-            'bg-[#d3ccdc]': branch === activeBranchName,
-            'hover:text-slate-100': branch !== activeBranchName,
-          }"
-          @click="checkoutBranch(branch)"
-        >
-          {{ branch }}
-        </div>
+        {{ branch }}
       </div>
       <h1 class="font-semibold text-left p-2">Remote branches</h1>
       <div
         v-for="branch in remoteBranchesNames"
         :key="branch"
-        class="list-none text-left w-full"
+        class="text-left w-full text-black cursor-default font-semibold pl-2 flex justify-between pr-1"
       >
-        <div
-          class="text-black cursor-default font-semibold pl-2 flex justify-between pr-1"
-        >
-          {{ branch }}
-          <strong
-            class="hover:text-slate-300 transition-colors duration-150 ease-in-out cursor-default"
-            ><v-icon name="hi-solid-chevron-double-right"
-          /></strong>
-        </div>
+        {{ branch }}
+        <strong
+          class="hover:text-slate-300 transition-colors duration-150 ease-in-out cursor-default"
+          ><v-icon name="hi-solid-chevron-double-right"
+        /></strong>
       </div>
     </div>
 
@@ -198,6 +218,9 @@ watchEffect(() => {
           <v-icon fill="black" name="hi-cloud-download" scale="1.2" />
         </i>
         <p>Fetch</p>
+        <aside v-if="isFetching" class="right-4 absolute">
+          <v-icon name="si-spinrilla" class="animate-spin" />
+        </aside>
       </span>
     </button>
     <button
@@ -214,6 +237,9 @@ watchEffect(() => {
 
           {{ pendingCommitsToPull }}
         </aside>
+        <aside v-if="isPulling" class="right-4 absolute">
+          <v-icon name="si-spinrilla" class="animate-spin" />
+        </aside>
       </span>
     </button>
     <button
@@ -229,6 +255,9 @@ watchEffect(() => {
           <v-icon name="bi-arrow-up-square" />
 
           {{ pendingCommitsToPush }}
+        </aside>
+        <aside v-if="isPushing" class="right-4 absolute">
+          <v-icon name="si-spinrilla" class="animate-spin" />
         </aside>
       </span>
     </button>

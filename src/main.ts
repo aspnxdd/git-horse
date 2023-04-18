@@ -14,6 +14,7 @@ import {
   PiHorsea,
   BiArrowUpSquare,
   BiArrowDownSquare,
+  SiSpinrilla,
 } from "oh-vue-icons/icons";
 
 addIcons(
@@ -26,7 +27,8 @@ addIcons(
   HiViewGrid,
   PiHorsea,
   BiArrowUpSquare,
-  BiArrowDownSquare
+  BiArrowDownSquare,
+  SiSpinrilla
 );
 
 import "./assets/main.postcss";
