@@ -89,7 +89,7 @@ const selectedModifiedFilesAmount = computed(() => {
 });
 </script>
 <template>
-  <section v-if="filesModified.length > 0" class="flex flex-col items-start">
+  <section  class="flex flex-col items-start">
     <span class="flex items-center justify-center gap-2 p-2">
       <input
         type="checkbox"
@@ -101,12 +101,9 @@ const selectedModifiedFilesAmount = computed(() => {
         Changed files ({{ filesModified.length }})
       </h1>
     </span>
-    <div class="flex flex-col text-left ml-4">
-      <span> 🟢 Insertions: {{ repoDiffStats?.insertions }}</span>
-      <span> 🔴 Deletions: {{ repoDiffStats?.deletions }}</span>
-    </div>
+
     <ul
-      class="list-none p-1 bg-[#4c4653] rounded-xl m-2 h-28 min-w-[20rem] text-xs overflow-y-scroll resize-y"
+      class="list-none p-1 bg-[#4c4653] rounded-xl m-2 h-28 min-w-[20rem] text-xs overflow-auto resize-y"
     >
       <li
         v-for="(file, idx) in filesModified"
@@ -124,6 +121,10 @@ const selectedModifiedFilesAmount = computed(() => {
         />
       </li>
     </ul>
+    <div class="flex flex-col gap-1 text-left ml-4 my-3">
+      <span> 🟢 Insertions: {{ repoDiffStats?.insertions }}</span>
+      <span> 🔴 Deletions: {{ repoDiffStats?.deletions }}</span>
+    </div>
     <div class="flex gap-4">
       <button
         :disabled="filesModified.every((v) => !v.selected)"

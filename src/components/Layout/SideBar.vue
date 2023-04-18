@@ -143,7 +143,7 @@ watchEffect(() => {
 
 <template>
   <nav
-    class="relative left-0 top-0 h-screen w-64 flex flex-col text-white cursor-default"
+    class="sticky left-0 top-0 h-[100vh] w-64 flex flex-col text-white cursor-default"
   >
     <SearchBar />
     <h1 class="font-bold text-xl flex justify-center items-center gap-3 my-4">

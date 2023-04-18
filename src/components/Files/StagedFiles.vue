@@ -52,14 +52,13 @@ async function commit() {
 
 <template>
   <section
-    v-if="filesStaged.length > 0"
     class="flex flex-col items-start w-2/5"
   >
     <span class="flex items-center justify-center gap-2 p-2">
       <h1 class="font-bold text-lg">Staged changes:</h1>
     </span>
     <ul
-      class="list-none p-1 bg-[#4c4653] rounded-xl m-2 h-28 min-w-[20rem] text-xs overflow-y-scroll resize-y"
+      class="list-none p-1 bg-[#4c4653] rounded-xl m-2 h-28 min-w-[20rem] text-xs overflow-auto resize-y"
     >
       <li
         v-for="(stagedFileName, idx) in filesStaged"
@@ -83,7 +82,7 @@ async function commit() {
         v-model="commitMessage"
         type="text"
         :class="[
-          'rounded-lg  my-2 p-1 text-black h-40 text-left text-clip w-full text-sm border-2',
+          'rounded-lg  my-2 p-1 text-black h-40 text-left text-clip w-[20rem] text-sm border-2',
           commitMessage && commitMessage.length > 50
             ? 'border-yellow-500  outline-yellow-500'
             : 'border-transparent',

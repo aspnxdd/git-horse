@@ -89,7 +89,7 @@ const displayFileDiff = () => {
 
 <template>
   <section
-    v-if="repoDiffLines.length > 0 && filesModifiedNames.length > 0"
+    v-if="repoStore.selectedFile"
     class="flex flex-col items-start mt-2"
   >
     <h1 class="font-bold text-lg">
