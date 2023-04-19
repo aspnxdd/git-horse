@@ -8,9 +8,9 @@ git-horse is a git client for Desktop (WIP).
 [![Screenshot of git-horse](./public/screenshot.png)](./public/screenshot.png)
 
 ## 🚀 Upcoming features
-- Push branch to origin
-- Tree file
-- Switching between branches and bringing changes to the new branch (`git switch`)
+- Merge options
+- Publish new branches
+- Add codemirror
 
 ## 📑 Goals
 - No freezes or lags
