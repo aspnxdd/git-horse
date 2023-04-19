@@ -94,7 +94,7 @@ async function commit() {
         <strong>Your commit message should be less than 50 characters.</strong>
       </span>
       <button
-        class="w-[50%] font-bold text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
+        class="action-button w-[95%]"
         @click="commit"
       >
         Commit to {{ repoStore.activeBranch }}

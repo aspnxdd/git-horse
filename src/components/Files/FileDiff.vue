@@ -97,16 +97,16 @@ function openFileInVsCode() {
 
 <template>
   <section v-if="repoStore.selectedFile" class="flex flex-col items-start mt-2">
-    <div class="flex flex-row items-center gap-4">
+    <div class="flex flex-row items-center gap-4 ml-2">
       <h1 class="font-bold text-lg">
-        File [<i class="text-[#cfcf44]">{{ repoStore.selectedFile }}</i
-        >]
+        File [ <i class="text-primary">{{ repoStore.selectedFile }}</i
+        > ]
       </h1>
       <button
         class="text-sm flex justify-center items-center gap-2 hover:text-slate-300"
         @click="openFileInVsCode"
       >
-        <i><strong> View in</strong></i>
+       <strong> View in</strong>
 
         <v-icon name="vi-file-type-vscode" scale="1.2" />
       </button>

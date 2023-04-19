@@ -89,7 +89,7 @@ const selectedModifiedFilesAmount = computed(() => {
 });
 </script>
 <template>
-  <section  class="flex flex-col items-start">
+  <section class="flex flex-col items-start">
     <span class="flex items-center justify-center gap-2 p-2">
       <input
         type="checkbox"
@@ -125,17 +125,17 @@ const selectedModifiedFilesAmount = computed(() => {
       <span> 🟢 Insertions: {{ repoDiffStats?.insertions }}</span>
       <span> 🔴 Deletions: {{ repoDiffStats?.deletions }}</span>
     </div>
-    <div class="flex gap-4">
+    <div class="flex w-full justify-between px-2 items-center">
       <button
         :disabled="filesModified.every((v) => !v.selected)"
-        class="px-4 ml-3 font-bold disabled:hover:bg-slate-400 disabled:bg-slate-400 text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
+        class="action-button w-[9.5rem]"
         @click="add"
       >
         Add ({{ selectedModifiedFilesAmount }})
       </button>
       <button
         :disabled="filesModified.every((v) => !v.selected)"
-        class="px-4 ml-3 font-bold disabled:hover:bg-slate-400 disabled:bg-slate-400 text-black bg-slate-50 rounded-md hover:bg-slate-300 transition-colors duration-150 ease-in-out"
+        class="action-button w-[9.5rem]"
         @click="discard"
       >
         Discard ({{ selectedModifiedFilesAmount }})
