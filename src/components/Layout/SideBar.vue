@@ -23,16 +23,18 @@ async function openRepo(path: string | null) {
     return;
   }
   await invoke("open", { path });
-  repoName.value = await invoke("get_repo_name");
-
+  const [_repoName, _repoPath] = await invoke<[string, string]>(
+    "get_repo_name"
+  );
+  repoName.value = _repoName;
   await invoke("db_insert", {
     key: repoName.value,
-    value: path,
+    value: _repoPath,
   });
-  repoStore.setRepo(path);
+  repoStore.setRepo(_repoPath);
   await resfreshBranches();
   await invoke("write_last_opened_repo", {
-    key: path,
+    key: _repoPath,
   });
   await getPendingCommitsToPush();
   await getPendingCommitsToPull();
@@ -143,7 +145,7 @@ watchEffect(() => {
 
 <template>
   <nav
-    class="bg-dimmed sticky left-0 top-0 h-[100vh] w-64 flex flex-col text-white cursor-default border-r border-gray-500"
+    class="bg-dimmed sticky left-0 top-0 h-[100vh] w-[256px] flex flex-col text-white cursor-default border-r border-gray-500"
   >
     <SearchBar />
     <h1 class="font-bold text-xl flex justify-center items-center gap-3 my-4">
@@ -265,5 +267,3 @@ watchEffect(() => {
     </button>
   </nav>
 </template>
-
-<style scoped></style>

@@ -95,13 +95,13 @@ pub fn get_current_branch_name(state: AppArg) -> Result<String, GitError> {
 }
 
 #[command]
-pub fn get_repo_name(state: AppArg) -> Result<String, GitError> {
+pub fn get_repo_name(state: AppArg) -> Result<(String, String), GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
-        let name = repo.get_repo_name()?;
-        return Ok(name);
+        let (name, path) = repo.get_repo_name()?;
+        return Ok((name, path));
     }
     Err(GitError::RepoNotFound)
 }

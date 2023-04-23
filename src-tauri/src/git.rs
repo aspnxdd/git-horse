@@ -18,10 +18,13 @@ impl Repo {
         let head_name = head.shorthand().unwrap();
         Ok(head_name.to_string())
     }
-    pub fn get_repo_name(&self) -> Result<String, GitError> {
+    pub fn get_repo_name(&self) -> Result<(String, String), GitError> {
         let path_name = self.repo.path().to_str().unwrap().to_string();
-        let repo_name: Vec<&str> = path_name.split("/").collect();
-        return Ok(repo_name[repo_name.len() - 3].to_owned());
+        let mut repo_name: Vec<&str> = path_name.split("/").collect();
+        let repo_short_name = repo_name[repo_name.len() - 3].to_owned();
+        repo_name.truncate(repo_name.len() - 2);
+        let repo_path = repo_name.join("/");
+        return Ok((repo_short_name.to_string(), repo_path.to_string()));
     }
 
     pub fn checkout_branch(&self, branch_name: &str) -> Result<(), GitError> {
