@@ -88,14 +88,14 @@ const displayFileDiff = () => {
   if (!repoStore.selectedFile) return;
   gitDiffContent.value = repoDiffLinesFiltered.value[
     repoStore.selectedFile
-  ].reduce((acc, e) => {
+  ].reduce((acc, element) => {
     // add extra empty line to the diff content
     acc.push({
-      ...e,
-      diffContent: e.diffContent.replaceAll("\n", ""),
+      ...element,
+      diffContent: element.diffContent.replaceAll("\n", ""),
     });
     return acc;
-  }, [] as any[]);
+  }, [] as GitDiff[]);
 };
 
 function openFileInVsCode() {
