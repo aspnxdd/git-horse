@@ -5,6 +5,7 @@ import type { GitDiff } from "src/shared/types";
 import { Command } from "@tauri-apps/api/shell";
 import { GitStatus } from "src/shared/constants";
 import { useRepoStore } from "@stores";
+import { CodeHighlighter } from ".";
 
 const props = defineProps({
   repoDiffLines: {
@@ -74,6 +75,7 @@ function filterFileDiff() {
       }
     });
   }
+  console.log({ filtered });
   repoDiffLinesFiltered.value = filtered;
 }
 
@@ -84,11 +86,21 @@ watch(props, () => {
 
 const displayFileDiff = () => {
   if (!repoStore.selectedFile) return;
-  gitDiffContent.value = repoDiffLinesFiltered.value[repoStore.selectedFile];
+  gitDiffContent.value = repoDiffLinesFiltered.value[
+    repoStore.selectedFile
+  ].reduce((acc, e) => {
+    // add extra empty line to the diff content
+    acc.push({
+      ...e,
+      diffContent: e.diffContent.replaceAll("\n", ""),
+    });
+    return acc;
+  }, [] as any[]);
 };
 
 function openFileInVsCode() {
   if (!repoStore.selectedFile || !repoStore.repo) return;
+  console.log({ file: repoStore.selectedFile, repo: repoStore.repo });
   new Command("vscode", [
     `${repoStore.repo}/${repoStore.selectedFile}`,
   ]).spawn();
@@ -96,43 +108,59 @@ function openFileInVsCode() {
 </script>
 
 <template>
-  <section v-if="repoStore.selectedFile" class="flex flex-col items-start mt-2">
+  <section
+    v-if="repoStore.selectedFile"
+    class="flex flex-col items-start mt-2 w-[80vw]"
+  >
     <div class="flex flex-row items-center gap-4 ml-2">
       <h1 class="font-bold text-lg">
-        File [ <i class="text-primary">{{ repoStore.selectedFile }}</i
-        > ]
+        File [ <i class="text-primary">{{ repoStore.selectedFile }}</i> ]
       </h1>
       <button
         class="text-sm flex justify-center items-center gap-2 hover:text-slate-300"
         @click="openFileInVsCode"
       >
-       <strong> View in</strong>
+        <strong> View in</strong>
 
         <v-icon name="vi-file-type-vscode" scale="1.2" />
       </button>
     </div>
-    <code
+
+    <div
       v-if="repoDiffLines.length > 0"
-      class="list-none p-2 bg-[#4c4653] rounded-xl m-2 text-sm overflow-auto h-[50vh] break-words w-[90%] mb-10"
+      class="bg-[#4c4653] rounded-xl text-sm w-full mb-10 mt-4 flex overflow-hidden border border-gray-500"
     >
-      <table class="table-auto w-full text-left">
-        <tbody>
+      <table class="w-[10%] text-left">
+        <tbody class="w-full border-r border-gray-500">
           <tr
-            v-for="file in gitDiffContent"
+            v-for="file in gitDiffContent.filter((diff) => diff.origin !== 'H')"
             :key="file.origin + file.diffContent + file.newLine + file.oldLine"
+            class="h-[48px] p-0 m-0"
             :class="{
               'bg-green-800': file.origin === '+',
               'bg-red-700': file.origin === '-',
             }"
           >
-            <td class="w-6">{{ file.oldLine }}</td>
-            <td class="w-6">{{ file.newLine }}</td>
-            <td class="w-6">{{ file.origin }}</td>
-            <td class="consolas">{{ file.diffContent }}</td>
+            <td class="w-6 h-[48px] px-2 m-0">{{ file.oldLine }}</td>
+            <td class="w-6 h-[48px] px-2 m-0">{{ file.newLine }}</td>
+            <td class="w-6 h-[48px] px-2 m-0">{{ file.origin }}</td>
           </tr>
         </tbody>
       </table>
-    </code>
+      <CodeHighlighter
+        class="w-[90%]"
+        :code="
+          (gitDiffContent ?? [])
+            .filter((diff) => diff.origin !== 'H')
+            .map((diff) => {
+              return {
+                text: diff.diffContent,
+                origin: diff.origin,
+              };
+            })
+        "
+      />
+    </div>
   </section>
 </template>
 

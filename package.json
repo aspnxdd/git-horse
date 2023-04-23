@@ -15,10 +15,13 @@
     "eslint": "eslint --ext .ts,.vue src"
   },
   "dependencies": {
+    "@highlightjs/vue-plugin": "^2.1.0",
     "@tauri-apps/api": "1.2.0",
+    "highlight.js": "11.7.0",
     "oh-vue-icons": "1.0.0-rc3",
     "pinia": "2.0.34",
-    "vue": "3.2.47"
+    "vue": "3.2.47",
+    "vue-highlight-code": "^0.1.16"
   },
   "devDependencies": {
     "@tauri-apps/cli": "1.2.3",

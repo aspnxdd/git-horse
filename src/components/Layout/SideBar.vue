@@ -143,17 +143,19 @@ watchEffect(() => {
 
 <template>
   <nav
-    class="bg-[#231e29] sticky left-0 top-0 h-[100vh] w-64 flex flex-col text-white cursor-default border-r border-gray-500"
+    class="bg-dimmed sticky left-0 top-0 h-[100vh] w-64 flex flex-col text-white cursor-default border-r border-gray-500"
   >
     <SearchBar />
     <h1 class="font-bold text-xl flex justify-center items-center gap-3 my-4">
       <v-icon name="pi-horsea" scale="1.5" /> Git Horse
     </h1>
-    <h1 class="font-semibold">Current repository</h1>
+    <div class="flex flex-col items-center gap-2">
+      <h1 class="font-semibold">Current repository</h1>
 
-    <span class="font-bold text-slate-200 text-lg mb-7">{{
-      repoName || "-"
-    }}</span>
+      <span class="font-bold text-slate-200 text-lg mb-7">{{
+        repoName || "-"
+      }}</span>
+    </div>
     <button
       class="text-white m-2 py-2 rounded-md font-bold hover:bg-primary transition-colors duration-150 ease-in-out mx-4 p-1"
       @click="handleOpenFile"

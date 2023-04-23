@@ -9,6 +9,8 @@ onMounted(async () => {
   const res = await invoke<string>("read_last_opened_repo");
   repoStore.setRepo(res);
 });
+
+
 </script>
 
 <template>
@@ -21,7 +23,6 @@ onMounted(async () => {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
   display: flex;
   background: #aa97c2;

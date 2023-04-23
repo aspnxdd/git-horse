@@ -1,0 +1,73 @@
+<script setup lang="ts">
+const props = defineProps({
+  code: {
+    type: Array as PropType<
+      Array<{
+        text: string;
+        origin: string;
+      }>
+    >,
+    default: new Array<{
+      text: string;
+      origin: string;
+    }>(),
+  },
+});
+
+onUpdated(() => {
+  const lines = document.querySelectorAll(".hljs");
+  lines.forEach((element, idx) => {
+    element.classList.remove("bg-green-800");
+    element.classList.remove("bg-red-700");
+    if (props.code[idx]?.origin === "+") {
+      element.classList.add("bg-green-800");
+    }
+    if (props.code[idx]?.origin === "-") {
+      element.classList.add("bg-red-700");
+    }
+  });
+});
+</script>
+
+<template>
+  <div class="flex flex-col bg-transparent">
+    <highlightjs
+      v-for="(line, idx) in props.code"
+      :key="line.origin + line.text + idx"
+      :code="line.text"
+      class="h-[48px]"
+    />
+  </div>
+</template>
+
+<style scoped>
+:deep(.cm-line) {
+  height: 3rem;
+  margin: 0;
+  padding: 0;
+  color: white;
+}
+
+:deep(.cm-gutters) {
+  display: none;
+}
+
+:deep(.cm-content) {
+  /* margin-top: 15px !important; */
+  padding: 0;
+}
+
+:deep(.cm-editor) {
+  background-color: transparent;
+}
+
+:deep(.hljs) {
+  height: 48px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+:deep(span) {
+  font-family: "Consolas", "Courier New", Courier, monospace !important;
+}
+</style>
