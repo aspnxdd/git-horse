@@ -41,26 +41,6 @@ onUpdated(() => {
 </template>
 
 <style scoped>
-:deep(.cm-line) {
-  height: 3rem;
-  margin: 0;
-  padding: 0;
-  color: white;
-}
-
-:deep(.cm-gutters) {
-  display: none;
-}
-
-:deep(.cm-content) {
-  /* margin-top: 15px !important; */
-  padding: 0;
-}
-
-:deep(.cm-editor) {
-  background-color: transparent;
-}
-
 :deep(.hljs) {
   height: 48px;
   overflow-x: auto;

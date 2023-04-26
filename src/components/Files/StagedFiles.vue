@@ -56,7 +56,7 @@ async function commit() {
       <h1 class="font-bold text-lg">Staged changes:</h1>
     </span>
     <ul
-      class="list-none p-1 bg-[#4c4653] rounded-xl m-2 h-28 min-w-[20rem] text-xs overflow-auto resize-y"
+      class="list-none p-1 bg-text-area-background rounded-xl m-2 h-28 min-w-[20rem] text-xs overflow-auto resize-y"
     >
       <li
         v-for="(stagedFileName, idx) in filesStaged"

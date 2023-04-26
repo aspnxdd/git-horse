@@ -123,17 +123,17 @@ onMounted(() => {
 <template>
   <main
     v-if="!repoStore.repo"
-    class="flex flex-col items-center justify-center w-full p-4 text-slate-100 bg-dimmed"
+    class="flex flex-col items-center justify-center w-full p-4 text-text bg-background"
   >
     <h1 class="text-2xl">Select a repository</h1>
   </main>
   <main
     v-else-if="filesModified.length === 0 && filesStaged.length === 0"
-    class="flex flex-col items-center justify-center w-full p-4 text-slate-100 bg-dimmed"
+    class="flex flex-col items-center justify-center w-full p-4 text-text bg-background"
   >
     <h1 class="text-2xl">No new changes</h1>
   </main>
-  <main v-else class="w-full p-4 text-slate-100 bg-dimmed">
+  <main v-else class="w-full p-4 text-text bg-background">
     <div class="flex flex-wrap w-full gap-3">
       <ChangedFiles
         :files-modified="filesModified"
