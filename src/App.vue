@@ -8,19 +8,29 @@ import { SearchBar, ThemeSelector } from "@components/Modal";
 const repoStore = useRepoStore();
 const themeStore = useThemeStore();
 
-const html = document.querySelector("html")!;
-
 onMounted(async () => {
+  console.log("mounted");
+  const html = document.querySelector("html")!;
+
   html.attributes.setNamedItem(document.createAttribute("data-theme"));
   html.attributes.getNamedItem("data-theme")!.value = themeStore.theme;
+  await import("./assets/github-dark-dimmed.css");
   const res = await invoke<string>("read_last_opened_repo");
   repoStore.setRepo(res);
 });
 
 watch(
   () => themeStore.theme,
-  (theme) => {
+  async (theme) => {
+    const html = document.querySelector("html")!;
     html.attributes.getNamedItem("data-theme")!.value = theme;
+    if (theme === "github-light") {
+      console.log("light");
+      await import("./assets/github.css");
+    } else if (theme === "github-dimmed") {
+      console.log("dimmed");
+      await import("./assets/github-dark-dimmed.css");
+    }
   }
 );
 </script>
