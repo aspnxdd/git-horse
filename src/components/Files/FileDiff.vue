@@ -75,7 +75,6 @@ function filterFileDiff() {
       }
     });
   }
-  console.log({ filtered });
   repoDiffLinesFiltered.value = filtered;
 }
 
@@ -100,7 +99,6 @@ const displayFileDiff = () => {
 
 function openFileInVsCode() {
   if (!repoStore.selectedFile || !repoStore.repo) return;
-  console.log({ file: repoStore.selectedFile, repo: repoStore.repo });
   new Command("vscode", [
     `${repoStore.repo}/${repoStore.selectedFile}`,
   ]).spawn();
@@ -110,7 +108,7 @@ function openFileInVsCode() {
 <template>
   <section
     v-if="repoStore.selectedFile"
-    class="flex flex-col items-start mt-2 w-[80vw]"
+    class="flex flex-col items-start mt-2 w-full"
   >
     <div class="flex flex-row items-center gap-4 ml-2">
       <h1 class="font-bold text-lg text-text">
@@ -130,8 +128,8 @@ function openFileInVsCode() {
       v-if="repoDiffLines.length > 0"
       class="bg-text-area-background rounded-xl text-sm w-full mb-10 mt-4 flex overflow-hidden border border-gray-500"
     >
-      <table class="w-[10%] text-left">
-        <tbody class="w-full border-r border-gray-500">
+      <table class="text-left">
+        <tbody class=" border-r border-gray-500">
           <tr
             v-for="file in gitDiffContent.filter((diff) => diff.origin !== 'H')"
             :key="file.origin + file.diffContent + file.newLine + file.oldLine"
@@ -148,7 +146,7 @@ function openFileInVsCode() {
         </tbody>
       </table>
       <CodeHighlighter
-        class="w-[90%]"
+        class="w-full h-full"
         :code="
           (gitDiffContent ?? [])
             .filter((diff) => diff.origin !== 'H')

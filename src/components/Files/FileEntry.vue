@@ -38,8 +38,16 @@ const props = defineProps({
 });
 
 function getStatusColor() {
-  const status = props.status.toLowerCase();
-  return `border-gitstatus-${status} text-gitstatus-${status} bg-gitstatus-${status}/20`;
+  if (props.status === "Modified") {
+    return "border-gitstatus-modified text-gitstatus-modified bg-gitstatus-modified/20";
+  }
+  if (props.status === "New") {
+    return "border-gitstatus-new text-gitstatus-new bg-gitstatus-new/20";
+  }
+  if (props.status === "Deleted") {
+    return "border-gitstatus-deleted text-gitstatus-deleted bg-gitstatus-deleted/20";
+  }
+  return "border-gitstatus-unknown text-gitstatus-unknown bg-gitstatus-unknown/20";
 }
 </script>
 

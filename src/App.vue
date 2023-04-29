@@ -4,9 +4,16 @@ import { SideBar, FilesView } from "@components/Layout";
 import { invoke } from "@tauri-apps/api/tauri";
 import { useRepoStore, useThemeStore } from "@stores";
 import { SearchBar, ThemeSelector } from "@components/Modal";
+import {
+  githubDimmedTheme,
+  githubLightTheme,
+  type Theme,
+} from "./shared/constants";
 
 const repoStore = useRepoStore();
 const themeStore = useThemeStore();
+
+const defaultTheme = githubDimmedTheme;
 
 onMounted(async () => {
   const theme = await invoke<string>("read_theme");
@@ -18,23 +25,43 @@ onMounted(async () => {
   repoStore.setRepo(res);
 });
 
-const bg = ref("#24292e");
-const language = ref("#f47067");
-const functionColor = ref("#dcbdfb");
-const variable = ref("#6cb6ff");
-const meta = ref("#96d0ff");
-const symbol = ref("#f69d50");
-const formula = ref("#768390");
-const selector = ref("#8ddb8c");
-const subst = ref("#adbac7");
-const section = ref("#316dca");
-const bullet = ref("#eac55f");
-const emphasis = ref("#adbac7");
-const strong = ref("#adbac7");
-const addition = ref("#b4f1b4");
-const deletion = ref("#ffd8d3");
-const additionBg = ref("#f0fff4");
-const deletionBg = ref("#ffeef0");
+function themeSetter(newTheme: Theme) {
+  bg.value = newTheme.bg;
+  language.value = newTheme.language;
+  functionColor.value = newTheme.functionColor;
+  variable.value = newTheme.variable;
+  meta.value = newTheme.meta;
+  symbol.value = newTheme.symbol;
+  formula.value = newTheme.formula;
+  selector.value = newTheme.selector;
+  subst.value = newTheme.subst;
+  section.value = newTheme.section;
+  bullet.value = newTheme.bullet;
+  emphasis.value = newTheme.emphasis;
+  strong.value = newTheme.strong;
+  addition.value = newTheme.addition;
+  deletion.value = newTheme.deletion;
+  additionBg.value = newTheme.additionBg;
+  deletionBg.value = newTheme.deletionBg;
+}
+
+const bg = ref(defaultTheme.bg);
+const language = ref(defaultTheme.language);
+const functionColor = ref(defaultTheme.functionColor);
+const variable = ref(defaultTheme.variable);
+const meta = ref(defaultTheme.meta);
+const symbol = ref(defaultTheme.symbol);
+const formula = ref(defaultTheme.formula);
+const selector = ref(defaultTheme.selector);
+const subst = ref(defaultTheme.subst);
+const section = ref(defaultTheme.section);
+const bullet = ref(defaultTheme.bullet);
+const emphasis = ref(defaultTheme.emphasis);
+const strong = ref(defaultTheme.strong);
+const addition = ref(defaultTheme.addition);
+const deletion = ref(defaultTheme.deletion);
+const additionBg = ref(defaultTheme.additionBg);
+const deletionBg = ref(defaultTheme.deletionBg);
 
 watch(
   () => themeStore.theme,
@@ -42,41 +69,9 @@ watch(
     const html = document.querySelector("html")!;
     html.attributes.getNamedItem("data-theme")!.value = theme;
     if (theme === "github-light") {
-      bg.value = "#fff";
-      language.value = "#b8868b";
-      functionColor.value = "#6f42c1";
-      variable.value = "#005cc5";
-      meta.value = "#032f62";
-      symbol.value = "#e36209";
-      formula.value = "#6a737d";
-      selector.value = "#22863a";
-      subst.value = "#24292e";
-      section.value = "#005cc5";
-      bullet.value = "#735c0f";
-      emphasis.value = "#24292e";
-      strong.value = "#24292e";
-      addition.value = "#22863a";
-      deletion.value = "#b31d28";
-      additionBg.value = "#f0fff4";
-      deletionBg.value = "#ffeef0";
+      themeSetter(githubLightTheme);
     } else if (theme === "github-dimmed") {
-      bg.value = "#24292e";
-      language.value = "#f47067";
-      functionColor.value = "#dcbdfb";
-      variable.value = "#6cb6ff";
-      meta.value = "#96d0ff";
-      symbol.value = "#f69d50";
-      formula.value = "#768390";
-      selector.value = "#8ddb8c";
-      subst.value = "#adbac7";
-      section.value = "#316dca";
-      bullet.value = "#eac55f";
-      emphasis.value = "#adbac7";
-      strong.value = "#adbac7";
-      addition.value = "#b4f1b4";
-      deletion.value = "#ffd8d3";
-      additionBg.value = "#f0fff4";
-      deletionBg.value = "#ffeef0";
+      themeSetter(githubDimmedTheme);
     }
     await invoke("write_theme", { key: theme });
   }
@@ -96,6 +91,7 @@ watch(
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   display: flex;
+  flex: 1;
 }
 
 pre code.hljs {
