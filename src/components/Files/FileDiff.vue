@@ -128,7 +128,7 @@ function openFileInVsCode() {
 
     <div
       v-if="repoDiffLines.length > 0"
-      class="bg-[#4c4653] rounded-xl text-sm w-full mb-10 mt-4 flex overflow-hidden border border-gray-500"
+      class="bg-text-area-background rounded-xl text-sm w-full mb-10 mt-4 flex overflow-hidden border border-gray-500"
     >
       <table class="w-[10%] text-left">
         <tbody class="w-full border-r border-gray-500">
@@ -137,8 +137,8 @@ function openFileInVsCode() {
             :key="file.origin + file.diffContent + file.newLine + file.oldLine"
             class="h-[48px] p-0 m-0"
             :class="{
-              'bg-green-800': file.origin === '+',
-              'bg-red-700': file.origin === '-',
+              'bg-green-addition': file.origin === '+',
+              'bg-red-deletion': file.origin === '-',
             }"
           >
             <td class="w-6 h-[48px] px-2 m-0">{{ file.oldLine }}</td>
