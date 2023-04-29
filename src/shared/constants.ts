@@ -12,10 +12,3 @@ export const GitStatusCodes = {
   2: GitStatus.Modified,
   1: GitStatus.New,
 };
-
-export const GitStatusColors = {
-  [GitStatus.Modified]: "text-[#b57219]",
-  [GitStatus.New]: "text-[#22a81b]",
-  [GitStatus.Deleted]: "text-[#bf1b1b]",
-  [GitStatus.Unknown]: "text-[#575757]",
-};

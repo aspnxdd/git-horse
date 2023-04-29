@@ -7,7 +7,14 @@ module.exports = {
     resolve(__dirname, "src/**/*.{vue,ts}"),
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        "gitstatus-new": "#22a81b",
+        "gitstatus-modified": "#b57219",
+        "gitstatus-deleted": "#bf1b1b",
+        "gitstatus-unknown": "#9ca3af",
+      },
+    },
   },
   plugins: [
     createThemes({

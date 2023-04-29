@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 
-import { GitStatus, GitStatusColors } from "src/shared/constants";
+import { GitStatus } from "src/shared/constants";
 
 interface Emits {
   (e: "update:checked", checked: boolean): void;
@@ -37,20 +37,18 @@ const props = defineProps({
   },
 });
 
-function getStatusColor(status: string) {
-  if (Object.hasOwn(GitStatusColors, status)) {
-    return GitStatusColors[status as keyof typeof GitStatusColors];
-  }
-  return "text-[#f546fa]";
+function getStatusColor() {
+  const status = props.status.toLowerCase();
+  return `border-gitstatus-${status} text-gitstatus-${status} bg-gitstatus-${status}/20`;
 }
-
-const colorStatus = getStatusColor(props.status);
 </script>
 
 <template>
   <div class="relative flex items-center">
-    <span :class="`${colorStatus} left-0 mr-2 font-bold`"
-      >[{{ status.charAt(0) }}]</span
+    <span
+      class="border-2 px-[7px] rounded-xl left-0 mr-2 font-bold"
+      :class="getStatusColor()"
+      >{{ status.charAt(0) }}</span
     >
 
     <label
