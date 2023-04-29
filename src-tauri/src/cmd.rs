@@ -720,3 +720,17 @@ pub fn read_last_opened_repo() -> Result<String, SledError> {
     let res = db.read_last_opened_repo()?;
     return Ok(res);
 }
+
+#[command]
+pub fn read_theme() -> Result<String, SledError> {
+    let db = db::Db::new()?;
+    let res = db.read_theme()?;
+    return Ok(res);
+}
+
+#[command]
+pub fn write_theme(key: String) -> Result<(), SledError> {
+    let db = db::Db::new()?;
+    let res = db.write_theme(key.as_str())?;
+    return Ok(res);
+}

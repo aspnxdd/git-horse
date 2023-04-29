@@ -9,9 +9,11 @@ const repoStore = useRepoStore();
 const themeStore = useThemeStore();
 
 onMounted(async () => {
+  const theme = await invoke<string>("read_theme");
+  themeStore.setTheme(theme);
   const html = document.querySelector("html")!;
   html.attributes.setNamedItem(document.createAttribute("data-theme"));
-  html.attributes.getNamedItem("data-theme")!.value = themeStore.theme;
+  html.attributes.getNamedItem("data-theme")!.value = theme;
   const res = await invoke<string>("read_last_opened_repo");
   repoStore.setRepo(res);
 });
@@ -76,6 +78,7 @@ watch(
       additionBg.value = "#f0fff4";
       deletionBg.value = "#ffeef0";
     }
+    await invoke("write_theme", { key: theme });
   }
 );
 </script>
