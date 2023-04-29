@@ -152,7 +152,7 @@ watchEffect(() => {
 
 <template>
   <nav
-    class="bg-background sticky left-0 top-0 h-[100vh] max-w-[256px]  min-w-[256px] flex flex-col text-text cursor-default border-r border-gray-500"
+    class="bg-background sticky left-0 top-0 h-[100vh]  flex flex-col text-text cursor-default border-r border-gray-500"
   >
     <h1 class="font-bold text-xl flex justify-center items-center gap-3 my-4">
       <v-icon name="pi-horsea" scale="1.5" /> Git Horse

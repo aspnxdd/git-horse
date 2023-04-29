@@ -19,6 +19,12 @@ onUpdated(() => {
   lines.forEach((element, idx) => {
     element.classList.remove("bg-green-addition");
     element.classList.remove("bg-red-deletion");
+    if (idx === 0) {
+      element.classList.add("rounded-tr-xl");
+    }
+    if (idx === lines.length - 1) {
+      element.classList.add("rounded-br-xl");
+    }
     if (props.code[idx]?.origin === "+") {
       element.classList.add("bg-green-addition");
     }
@@ -30,12 +36,11 @@ onUpdated(() => {
 </script>
 
 <template>
-  <div class="flex flex-col bg-transparent">
+  <div class="flex flex-col">
     <highlightjs
       v-for="(line, idx) in props.code"
       :key="line.origin + line.text + idx"
       :code="line.text"
-      class="h-[48px]"
     />
   </div>
 </template>
@@ -43,6 +48,7 @@ onUpdated(() => {
 <style scoped>
 :deep(.hljs) {
   height: 48px;
+  width: 65vw;
   overflow-x: auto;
   overflow-y: hidden;
 }

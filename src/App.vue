@@ -9,6 +9,8 @@ import {
   githubLightTheme,
   type Theme,
 } from "./shared/constants";
+import { Splitpanes, Pane } from "splitpanes";
+import "splitpanes/dist/splitpanes.css";
 
 const repoStore = useRepoStore();
 const themeStore = useThemeStore();
@@ -81,17 +83,32 @@ watch(
 <template>
   <SearchBar />
   <ThemeSelector />
-  <SideBar />
-  <FilesView />
+  <splitpanes>
+    <pane size="20" max-size="30" min-size="20">
+      <SideBar />
+    </pane>
+    <pane size="80">
+      <FilesView />
+    </pane>
+  </splitpanes>
 </template>
 
 <style>
+.splitpanes__pane {
+  font-family: Helvetica, Arial, sans-serif;
+  color: rgba(255, 255, 255, 0.6);
+  overflow: auto;
+  background: v-bind(bg);
+}
+.splitpanes--vertical > .splitpanes__splitter {
+  min-width: 1px;
+  cursor: col-resize;
+  width: 3px;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  display: flex;
-  flex: 1;
 }
 
 pre code.hljs {
@@ -107,6 +124,7 @@ code.hljs {
   color: #adbac7;
   background: v-bind(bg);
 }
+
 .hljs-doctag,
 .hljs-keyword,
 .hljs-meta .hljs-keyword,

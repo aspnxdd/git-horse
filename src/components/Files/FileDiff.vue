@@ -108,14 +108,14 @@ function openFileInVsCode() {
 <template>
   <section
     v-if="repoStore.selectedFile"
-    class="flex flex-col items-start mt-2 w-full"
+    class="flex flex-col items-start w-full mt-2"
   >
     <div class="flex flex-row items-center gap-4 ml-2">
-      <h1 class="font-bold text-lg text-text">
+      <h1 class="text-lg font-bold text-text">
         File [ <i class="text-primary">{{ repoStore.selectedFile }}</i> ]
       </h1>
       <button
-        class="text-sm flex justify-center items-center gap-2 text-text hover:text-text-hover"
+        class="flex items-center justify-center gap-2 text-sm text-text hover:text-text-hover"
         @click="openFileInVsCode"
       >
         <strong> View in</strong>
@@ -126,27 +126,31 @@ function openFileInVsCode() {
 
     <div
       v-if="repoDiffLines.length > 0"
-      class="bg-text-area-background rounded-xl text-sm w-full mb-10 mt-4 flex overflow-hidden border border-gray-500"
+      class="flex mt-4 mb-10 text-sm border-2 border-gray-500 rounded-xl bg-text-area-background"
     >
       <table class="text-left">
-        <tbody class=" border-r border-gray-500">
+        <tbody class="border-r border-gray-500">
           <tr
             v-for="file in gitDiffContent.filter((diff) => diff.origin !== 'H')"
             :key="file.origin + file.diffContent + file.newLine + file.oldLine"
-            class="h-[48px] p-0 m-0"
             :class="{
               'bg-green-addition': file.origin === '+',
               'bg-red-deletion': file.origin === '-',
             }"
           >
-            <td class="w-6 h-[48px] px-2 m-0">{{ file.oldLine }}</td>
-            <td class="w-6 h-[48px] px-2 m-0">{{ file.newLine }}</td>
-            <td class="w-6 h-[48px] px-2 m-0">{{ file.origin }}</td>
+            <td class="w-6 h-[48px] px-2 m-1">
+              {{ file.oldLine }}
+            </td>
+            <td class="w-6 h-[48px] px-2 m-0">
+              {{ file.newLine }}
+            </td>
+            <td class="w-6 h-[48px] px-2 m-0">
+              {{ file.origin }}
+            </td>
           </tr>
         </tbody>
       </table>
       <CodeHighlighter
-        class="w-full h-full"
         :code="
           (gitDiffContent ?? [])
             .filter((diff) => diff.origin !== 'H')
@@ -165,6 +169,12 @@ function openFileInVsCode() {
 <style scoped>
 main {
   cursor: default;
+}
+
+tr:first-of-type > td:first-of-type,
+tr:last-of-type > td:first-of-type {
+  border-top-left-radius: 0.75rem;
+  border-bottom-left-radius: 0.75rem;
 }
 
 .consolas {
