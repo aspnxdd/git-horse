@@ -17,13 +17,13 @@ const props = defineProps({
 onUpdated(() => {
   const lines = document.querySelectorAll(".hljs");
   lines.forEach((element, idx) => {
-    element.classList.remove("bg-green-800");
-    element.classList.remove("bg-red-700");
+    element.classList.remove("bg-green-addition");
+    element.classList.remove("bg-red-deletion");
     if (props.code[idx]?.origin === "+") {
-      element.classList.add("bg-green-800");
+      element.classList.add("bg-green-addition");
     }
     if (props.code[idx]?.origin === "-") {
-      element.classList.add("bg-red-700");
+      element.classList.add("bg-red-deletion");
     }
   });
 });
@@ -41,26 +41,6 @@ onUpdated(() => {
 </template>
 
 <style scoped>
-:deep(.cm-line) {
-  height: 3rem;
-  margin: 0;
-  padding: 0;
-  color: white;
-}
-
-:deep(.cm-gutters) {
-  display: none;
-}
-
-:deep(.cm-content) {
-  /* margin-top: 15px !important; */
-  padding: 0;
-}
-
-:deep(.cm-editor) {
-  background-color: transparent;
-}
-
 :deep(.hljs) {
   height: 48px;
   overflow-x: auto;

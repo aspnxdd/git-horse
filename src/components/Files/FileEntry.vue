@@ -53,7 +53,10 @@ const colorStatus = getStatusColor(props.status);
       >[{{ status.charAt(0) }}]</span
     >
 
-    <label :for="fileName" class="mr-2 hover:text-slate-400 flex justify-center">
+    <label
+      :for="fileName"
+      class="mr-2 hover:text-text-hover flex justify-center"
+    >
       <input
         v-if="isInput"
         :id="fileName"

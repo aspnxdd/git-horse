@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { useRepoStore, useModalsStore } from "@stores";
+import { useRepoStore, useModalsStore, useThemeStore } from "@stores";
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/dialog";
-import { SearchBar } from "@components/Modal";
 
 const activeBranchName = ref<null | string>(null);
 const repoName = ref<null | string>(null);
@@ -10,6 +9,7 @@ const localBranchesNames = ref<null | string[]>(null);
 const remoteBranchesNames = ref<null | string[]>(null);
 const repoStore = useRepoStore();
 const modalsStore = useModalsStore();
+const themeStore = useThemeStore();
 
 const pendingCommitsToPush = ref<null | number>(null);
 const pendingCommitsToPull = ref<null | number>(null);
@@ -17,6 +17,13 @@ const pendingCommitsToPull = ref<null | number>(null);
 const isFetching = ref(false);
 const isPulling = ref(false);
 const isPushing = ref(false);
+
+const iconColor = computed(() => {
+  if (themeStore.theme === "github-light") {
+    return "#22272e";
+  }
+  return "#fff";
+});
 
 async function openRepo(path: string | null) {
   if (!path) {
@@ -145,37 +152,36 @@ watchEffect(() => {
 
 <template>
   <nav
-    class="bg-dimmed sticky left-0 top-0 h-[100vh] w-[256px] flex flex-col text-white cursor-default border-r border-gray-500"
+    class="bg-background sticky left-0 top-0 h-[100vh] w-[256px] flex flex-col text-text cursor-default border-r border-gray-500"
   >
-    <SearchBar />
     <h1 class="font-bold text-xl flex justify-center items-center gap-3 my-4">
       <v-icon name="pi-horsea" scale="1.5" /> Git Horse
     </h1>
     <div class="flex flex-col items-center gap-2">
       <h1 class="font-semibold">Current repository</h1>
 
-      <span class="font-bold text-slate-200 text-lg mb-7">{{
+      <span class="font-bold text-text text-lg mb-7">{{
         repoName || "-"
       }}</span>
     </div>
     <button
-      class="text-white m-2 py-2 rounded-md font-bold hover:bg-primary transition-colors duration-150 ease-in-out mx-4 p-1"
+      class="text-text m-2 py-2 rounded-md font-bold hover:bg-primary transition-colors duration-150 ease-in-out mx-4 p-1"
       @click="handleOpenFile"
     >
       <span class="flex relative gap-3">
         <i class="left-0">
-          <v-icon fill="white" name="hi-folder-open" scale="1.2" />
+          <v-icon :fill="iconColor" name="hi-folder-open" scale="1.2" />
         </i>
         <p>Open repo</p>
       </span>
     </button>
     <button
-      class="text-white m-2 py-2 rounded-md font-bold hover:bg-primary transition-colors duration-150 ease-in-out mx-4 p-1"
+      class="text-text m-2 py-2 rounded-md font-bold hover:bg-primary transition-colors duration-150 ease-in-out mx-4 p-1"
       @click="() => modalsStore.setSearchModalOpen(true)"
     >
       <span class="flex relative gap-3">
         <i class="left-0">
-          <v-icon fill="white" name="hi-view-grid" scale="1.2" />
+          <v-icon :fill="iconColor" name="hi-view-grid" scale="1.2" />
         </i>
         <p>Recent (Ctrl+K)</p>
       </span>
@@ -189,11 +195,11 @@ watchEffect(() => {
       <div
         v-for="branch in localBranchesNames"
         :key="branch"
-        class="text-left py-1 rounded-md w-full text-white transition-colors duration-150 ease-in-out cursor-default font-semibold pl-2"
+        class="text-left py-1 rounded-md w-full text-text transition-colors duration-150 ease-in-out cursor-default font-semibold pl-2"
         as="button"
         :class="{
           'bg-primary': branch === activeBranchName,
-          'hover:text-slate-300': branch !== activeBranchName,
+          'hover:text-text-hover': branch !== activeBranchName,
         }"
         @click="() => checkoutBranch(branch)"
       >
@@ -203,23 +209,23 @@ watchEffect(() => {
       <div
         v-for="branch in remoteBranchesNames"
         :key="branch"
-        class="text-left py-1 w-full text-white cursor-default font-semibold pl-2 flex justify-between pr-1"
+        class="text-left py-1 w-full text-text cursor-default font-semibold pl-2 flex justify-between pr-1"
       >
         {{ branch }}
         <strong
-          class="hover:text-slate-300 transition-colors duration-150 ease-in-out cursor-default"
+          class="hover:text-text-hover transition-colors duration-150 ease-in-out cursor-default"
           ><v-icon name="hi-solid-chevron-double-right"
         /></strong>
       </div>
     </div>
 
     <button
-      class="text-white m-2 py-2 rounded-md font-bold hover:bg-primary transition-colors duration-150 ease-in-out mx-4 p-1"
+      class="text-text m-2 py-2 rounded-md font-bold hover:bg-primary transition-colors duration-150 ease-in-out mx-4 p-1"
       @click="fetchRemote"
     >
       <span class="flex relative gap-3">
         <i class="left-0">
-          <v-icon fill="white" name="hi-cloud-download" scale="1.2" />
+          <v-icon :fill="iconColor" name="hi-cloud-download" scale="1.2" />
         </i>
         <p>Fetch</p>
         <aside v-if="isFetching" class="right-4 absolute">
@@ -228,12 +234,12 @@ watchEffect(() => {
       </span>
     </button>
     <button
-      class="text-white m-2 py-2 rounded-md font-bold hover:bg-primary transition-colors duration-150 ease-in-out mx-4 p-1"
+      class="text-text m-2 py-2 rounded-md font-bold hover:bg-primary transition-colors duration-150 ease-in-out mx-4 p-1"
       @click="pullRemote"
     >
       <span class="flex relative gap-3">
         <i class="left-0">
-          <v-icon fill="white" name="hi-cloud-download" scale="1.2" />
+          <v-icon :fill="iconColor" name="hi-cloud-download" scale="1.2" />
         </i>
         <p>Pull</p>
         <aside v-if="pendingCommitsToPull">
@@ -247,12 +253,12 @@ watchEffect(() => {
       </span>
     </button>
     <button
-      class="text-white m-2 py-2 rounded-md font-bold hover:bg-primary transition-colors duration-150 ease-in-out mx-4 p-1"
+      class="text-text m-2 py-2 rounded-md font-bold hover:bg-primary transition-colors duration-150 ease-in-out mx-4 p-1"
       @click="pushRemote"
     >
       <span class="flex relative gap-3">
         <i class="left-0">
-          <v-icon fill="white" name="hi-cloud-upload" scale="1.2" />
+          <v-icon :fill="iconColor" name="hi-cloud-upload" scale="1.2" />
         </i>
         <p>Push</p>
         <aside v-if="pendingCommitsToPush">
@@ -263,6 +269,21 @@ watchEffect(() => {
         <aside v-if="isPushing" class="right-4 absolute">
           <v-icon name="si-spinrilla" class="animate-spin" />
         </aside>
+      </span>
+    </button>
+    <button
+      class="text-text absolute bottom-4 py-2 left-1/2 w-[75%] -translate-x-1/2 rounded-md font-bold hover:bg-primary transition-colors duration-150 ease-in-out p-1"
+      @click="
+        () => {
+          modalsStore.setThemeModalOpen(true);
+        }
+      "
+    >
+      <span class="flex relative gap-3">
+        <i class="left-0">
+          <v-icon :fill="iconColor" name="bi-palette" scale="1.2" />
+        </i>
+        <p>Change Theme</p>
       </span>
     </button>
   </nav>

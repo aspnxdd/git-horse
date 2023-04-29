@@ -45,6 +45,8 @@ fn main() {
             cmd::get_pending_commits_to_push,
             cmd::get_pending_commits_to_pull,
             cmd::pull_from_remote,
+            cmd::read_theme,
+            cmd::write_theme,
         ])
         .menu(menu::Menu::new())
         .on_menu_event(|event| {

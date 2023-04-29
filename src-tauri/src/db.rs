@@ -13,6 +13,7 @@ pub struct Repo {
 
 const TMP_PATH: &str = "tmp/db";
 const LAST_OPENED_REPO: &str = "last_opened_repo";
+const THEME: &str = "theme";
 
 impl Db {
     pub fn new() -> Result<Self, SledError> {
@@ -33,6 +34,14 @@ impl Db {
     pub fn read_last_opened_repo(&self) -> Result<String, SledError> {
         let key = LAST_OPENED_REPO;
         let value = self.get(key)?;
+        Ok(value)
+    }
+    pub fn write_theme(&self, new_theme: &str) -> Result<(), SledError> {
+        self.db.insert(THEME, new_theme)?;
+        Ok(())
+    }
+    pub fn read_theme(&self) -> Result<String, SledError> {
+        let value = self.get(THEME)?;
         Ok(value)
     }
 
