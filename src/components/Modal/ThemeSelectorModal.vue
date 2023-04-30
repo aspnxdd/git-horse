@@ -38,13 +38,6 @@ async function populateRepos() {
 
 onMounted(async () => {
   document.addEventListener("keydown", (e) => {
-    if (e.code === "KeyK" && e.ctrlKey) {
-      if (modalsStore.themeModal) {
-        closeModal();
-      } else {
-        modalsStore.setThemeModalOpen(true);
-      }
-    }
     if (e.code === "Escape") {
       closeModal();
     }

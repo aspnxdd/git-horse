@@ -12,10 +12,10 @@ import {
 import { Splitpanes, Pane } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
 
+const DEFAULT_THEME = githubDimmedTheme;
+
 const repoStore = useRepoStore();
 const themeStore = useThemeStore();
-
-const defaultTheme = githubDimmedTheme;
 
 onMounted(async () => {
   const theme = await invoke<string>("read_theme");
@@ -47,23 +47,23 @@ function themeSetter(newTheme: Theme) {
   deletionBg.value = newTheme.deletionBg;
 }
 
-const bg = ref(defaultTheme.bg);
-const language = ref(defaultTheme.language);
-const functionColor = ref(defaultTheme.functionColor);
-const variable = ref(defaultTheme.variable);
-const meta = ref(defaultTheme.meta);
-const symbol = ref(defaultTheme.symbol);
-const formula = ref(defaultTheme.formula);
-const selector = ref(defaultTheme.selector);
-const subst = ref(defaultTheme.subst);
-const section = ref(defaultTheme.section);
-const bullet = ref(defaultTheme.bullet);
-const emphasis = ref(defaultTheme.emphasis);
-const strong = ref(defaultTheme.strong);
-const addition = ref(defaultTheme.addition);
-const deletion = ref(defaultTheme.deletion);
-const additionBg = ref(defaultTheme.additionBg);
-const deletionBg = ref(defaultTheme.deletionBg);
+const bg = ref(DEFAULT_THEME.bg);
+const language = ref(DEFAULT_THEME.language);
+const functionColor = ref(DEFAULT_THEME.functionColor);
+const variable = ref(DEFAULT_THEME.variable);
+const meta = ref(DEFAULT_THEME.meta);
+const symbol = ref(DEFAULT_THEME.symbol);
+const formula = ref(DEFAULT_THEME.formula);
+const selector = ref(DEFAULT_THEME.selector);
+const subst = ref(DEFAULT_THEME.subst);
+const section = ref(DEFAULT_THEME.section);
+const bullet = ref(DEFAULT_THEME.bullet);
+const emphasis = ref(DEFAULT_THEME.emphasis);
+const strong = ref(DEFAULT_THEME.strong);
+const addition = ref(DEFAULT_THEME.addition);
+const deletion = ref(DEFAULT_THEME.deletion);
+const additionBg = ref(DEFAULT_THEME.additionBg);
+const deletionBg = ref(DEFAULT_THEME.deletionBg);
 
 watch(
   () => themeStore.theme,

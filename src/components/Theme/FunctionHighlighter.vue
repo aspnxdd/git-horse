@@ -17,7 +17,7 @@ const theme = THEME_MAPPER[props.theme as keyof typeof THEME_MAPPER];
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col font-semibold">
     <div class="flex">
       <span
         :style="{
