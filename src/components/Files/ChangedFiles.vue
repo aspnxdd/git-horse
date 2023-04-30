@@ -2,8 +2,8 @@
 import type { FileStatusWithStatusLabel, GitDiff } from "src/shared/types";
 
 import { useRepoStore } from "@stores";
-import { invoke } from "@tauri-apps/api/tauri";
 import { FileEntry } from "./index";
+import { addAllFiles, addFiles, discardFiles } from "src/adapter/git-actions";
 
 const props = defineProps<{
   filesModified: FileStatusWithStatusLabel[];
@@ -52,7 +52,7 @@ function displayFileDiffModified(index: number) {
 
 async function add() {
   if (props.isAllFilesChangedChecked) {
-    await invoke("add_all");
+    await addAllFiles();
   } else {
     const files = (props.filesModified ?? []).reduce(
       (acc, { fileName, selected }) => {
@@ -61,7 +61,7 @@ async function add() {
       [] as string[]
     );
 
-    await invoke("add", { files });
+    await addFiles(files);
   }
   await getModifiedFiles();
   await getStagedFiles();
@@ -70,7 +70,7 @@ async function add() {
 async function discard() {
   if (props.isAllFilesChangedChecked) {
     const files = (props.filesModified ?? []).map(({ fileName }) => fileName);
-    await invoke("discard", { files });
+    await discardFiles(files);
   } else {
     const files = (props.filesModified ?? []).reduce(
       (acc, { fileName, selected }) => {
@@ -79,7 +79,7 @@ async function discard() {
       [] as string[]
     );
 
-    await invoke("discard", { files });
+    await discardFiles(files);
   }
   await getModifiedFiles();
 }
@@ -97,7 +97,7 @@ const selectedModifiedFilesAmount = computed(() => {
         :checked="props.isAllFilesChangedChecked"
         @click="toggleAll"
       />
-      <h1 class="font-bold text-lg">
+      <h1 class="text-lg font-bold">
         Changed files ({{ filesModified.length }})
       </h1>
     </span>
@@ -108,7 +108,7 @@ const selectedModifiedFilesAmount = computed(() => {
       <li
         v-for="(file, idx) in filesModified"
         :key="file.fileName + file.selected + file.status"
-        class="text-left p-1"
+        class="p-1 text-left"
       >
         <FileEntry
           :file-name="file.fileName"
@@ -121,11 +121,11 @@ const selectedModifiedFilesAmount = computed(() => {
         />
       </li>
     </ul>
-    <div class="flex flex-col gap-1 text-left ml-4 my-3">
+    <div class="flex flex-col gap-1 my-3 ml-4 text-left">
       <span> 🟢 Insertions: {{ repoDiffStats?.insertions }}</span>
       <span> 🔴 Deletions: {{ repoDiffStats?.deletions }}</span>
     </div>
-    <div class="flex w-full justify-between px-2 items-center">
+    <div class="flex items-center justify-between w-full px-2">
       <button
         :disabled="filesModified.every((v) => !v.selected)"
         class="action-button w-[9.5rem]"

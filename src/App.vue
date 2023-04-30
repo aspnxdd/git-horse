@@ -1,7 +1,6 @@
 <!-- eslint-disable @typescript-eslint/no-non-null-assertion -->
 <script setup lang="ts">
 import { SideBar, FilesView } from "@components/Layout";
-import { invoke } from "@tauri-apps/api/tauri";
 import { useRepoStore, useThemeStore } from "@stores";
 import { SearchBarModal, ThemeSelectorModal } from "@components/Modal";
 import {
@@ -9,6 +8,11 @@ import {
   githubLightTheme,
   type Theme,
 } from "./shared/constants";
+import {
+  getLastOpenedRepoFromDb,
+  getThemeFromDb,
+  setThemeToDb,
+} from "src/adapter/db";
 import { Splitpanes, Pane } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
 
@@ -18,13 +22,15 @@ const repoStore = useRepoStore();
 const themeStore = useThemeStore();
 
 onMounted(async () => {
-  const theme = await invoke<string>("read_theme");
+  const theme = await getThemeFromDb().catch(() => "github-dimmed");
   themeStore.setTheme(theme);
   const html = document.querySelector("html")!;
   html.attributes.setNamedItem(document.createAttribute("data-theme"));
   html.attributes.getNamedItem("data-theme")!.value = theme;
-  const res = await invoke<string>("read_last_opened_repo");
-  repoStore.setRepo(res);
+  try {
+    const res = await getLastOpenedRepoFromDb();
+    repoStore.setRepo(res);
+  } catch (_) {}
 });
 
 function themeSetter(newTheme: Theme) {
@@ -69,13 +75,14 @@ watch(
   () => themeStore.theme,
   async (theme) => {
     const html = document.querySelector("html")!;
+    html.attributes.setNamedItem(document.createAttribute("data-theme"));
     html.attributes.getNamedItem("data-theme")!.value = theme;
     if (theme === "github-light") {
       themeSetter(githubLightTheme);
     } else if (theme === "github-dimmed") {
       themeSetter(githubDimmedTheme);
     }
-    await invoke("write_theme", { theme });
+    await setThemeToDb(theme);
   }
 );
 </script>

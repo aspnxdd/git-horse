@@ -85,9 +85,9 @@ watch(props, () => {
 
 const displayFileDiff = () => {
   if (!repoStore.selectedFile) return;
-  gitDiffContent.value = repoDiffLinesFiltered.value[
-    repoStore.selectedFile
-  ].reduce((acc, element) => {
+  gitDiffContent.value = (
+    repoDiffLinesFiltered.value[repoStore.selectedFile] ?? []
+  ).reduce((acc, element) => {
     // add extra empty line to the diff content
     acc.push({
       ...element,

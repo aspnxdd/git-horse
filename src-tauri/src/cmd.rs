@@ -680,37 +680,23 @@ pub fn get_pending_commits_to_pull(state: AppArg) -> Result<u32, GitError> {
 }
 
 #[command]
-pub fn db_insert(key: Option<String>, value: Option<String>) -> Result<(), SledError> {
+pub fn add_new_repo(repo_name: Option<String>, repo_path: Option<String>) -> Result<(), SledError> {
     let db = db::Db::new()?;
-    db.insert(key.unwrap().as_str(), value.unwrap().as_str())?;
+    db.insert(repo_name.unwrap().as_str(), repo_path.unwrap().as_str())?;
     return Ok(());
 }
 
 #[command]
-pub fn db_get(key: Option<String>) -> Result<String, SledError> {
-    let db = db::Db::new()?;
-    let res = db.get(key.unwrap().as_str())?;
-    Ok(res)
-}
-
-#[command]
-pub fn db_remove(key: Option<String>) -> Result<(), SledError> {
-    let db = db::Db::new()?;
-    db.remove(key.unwrap().as_str())?;
-    return Ok(());
-}
-
-#[command]
-pub fn db_get_all() -> Result<Vec<db::Repo>, SledError> {
+pub fn get_all_repos() -> Result<Vec<db::Repo>, SledError> {
     let db = db::Db::new()?;
     let res = db.get_all()?;
     return Ok(res);
 }
 
 #[command]
-pub fn write_last_opened_repo(key: Option<String>) -> Result<(), SledError> {
+pub fn write_last_opened_repo(repo: Option<String>) -> Result<(), SledError> {
     let db = db::Db::new()?;
-    let res = db.write_last_opened_repo(key.unwrap().as_str())?;
+    let res = db.write_last_opened_repo(repo.unwrap().as_str())?;
     return Ok(res);
 }
 

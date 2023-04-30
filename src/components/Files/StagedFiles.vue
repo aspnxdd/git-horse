@@ -2,8 +2,8 @@
 import type { FileStatusWithStatusLabel, GitDiff } from "src/shared/types";
 
 import { useRepoStore } from "@stores";
-import { invoke } from "@tauri-apps/api/tauri";
 import { FileEntry } from "./index";
+import { commit } from "src/adapter/git-actions";
 
 const props = defineProps<{
   filesStaged: FileStatusWithStatusLabel[];
@@ -36,12 +36,12 @@ function displayFileDiffStaged(index: number) {
   repoStore.setSelectedFile(props.filesStaged[index].fileName);
 }
 
-async function commit() {
+async function handleCommit() {
   if (!commitMessage.value) {
     alert("Please enter commit message");
     return;
   }
-  await invoke("commit", { message: commitMessage.value });
+  await commit(commitMessage.value);
   getStagedFiles();
 }
 </script>
@@ -85,7 +85,7 @@ async function commit() {
       >
         <strong>Your commit message should be less than 50 characters.</strong>
       </span>
-      <button class="action-button w-[95%]" @click="commit">
+      <button class="action-button w-[95%]" @click="handleCommit">
         Commit to {{ repoStore.activeBranch }}
       </button>
     </div>

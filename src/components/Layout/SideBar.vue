@@ -1,7 +1,20 @@
 <script setup lang="ts">
 import { useRepoStore, useModalsStore, useThemeStore } from "@stores";
-import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/dialog";
+import { addNewRepoToDb, setLastOpenedRepoToDb } from "src/adapter/db";
+import {
+  findBranches,
+  getCurrentBranchName,
+  getPendingCommitsToPush,
+  getRepoName,
+  openRepo,
+  getPendingCommitsToPull,
+  checkoutBranch,
+  getRemotes,
+  fetchRemote,
+  pushRemote,
+  pullRemote,
+} from "src/adapter/git-actions";
 
 const activeBranchName = ref<null | string>(null);
 const repoName = ref<null | string>(null);
@@ -25,26 +38,19 @@ const iconColor = computed(() => {
   return "#fff";
 });
 
-async function openRepo(path: string | null) {
+async function handleOpenRepo(path: string | null) {
   if (!path) {
     return;
   }
-  await invoke("open", { path });
-  const [_repoName, _repoPath] = await invoke<[string, string]>(
-    "get_repo_name"
-  );
+  await openRepo(path);
+  const [_repoName, _repoPath] = await getRepoName();
   repoName.value = _repoName;
-  await invoke("db_insert", {
-    key: repoName.value,
-    value: _repoPath,
-  });
+  await addNewRepoToDb(repoName.value, _repoPath);
   repoStore.setRepo(_repoPath);
   await resfreshBranches();
-  await invoke("write_last_opened_repo", {
-    key: _repoPath,
-  });
-  await getPendingCommitsToPush();
-  await getPendingCommitsToPull();
+  await setLastOpenedRepoToDb(_repoPath);
+  await handleGetPendingCommitsToPush();
+  await handleGetPendingCommitsToPull();
 }
 
 async function handleOpenFile() {
@@ -53,78 +59,74 @@ async function handleOpenFile() {
     multiple: false,
   });
   if (file && !Array.isArray(file)) {
-    openRepo(file);
+    handleOpenRepo(file);
   }
 }
 
 watch(repoStore, async () => {
-  await openRepo(repoStore.repo);
-  await getPendingCommitsToPush();
-  await getPendingCommitsToPull();
+  await handleOpenRepo(repoStore.repo);
+  await handleGetPendingCommitsToPush();
+  await handleGetPendingCommitsToPull();
 });
 
 async function resfreshBranches() {
-  localBranchesNames.value = await invoke("find_branches", { filter: "Local" });
-  remoteBranchesNames.value = await invoke("find_branches", {
-    filter: "Remote",
-  });
-  activeBranchName.value = await invoke<string>("get_current_branch_name");
+  localBranchesNames.value = await findBranches("Local");
+  remoteBranchesNames.value = await findBranches("Remote");
+  activeBranchName.value = await getCurrentBranchName();
   repoStore.setActiveBranch(activeBranchName.value);
 }
 
-async function getPendingCommitsToPush() {
+async function handleGetPendingCommitsToPush() {
   try {
-    const _pendingCommitsToPush = await invoke<number>(
-      "get_pending_commits_to_push"
-    );
+    const _pendingCommitsToPush = await getPendingCommitsToPush();
     pendingCommitsToPush.value = _pendingCommitsToPush;
   } catch (e) {
     pendingCommitsToPush.value = null;
   }
 }
 
-async function getPendingCommitsToPull() {
+async function handleGetPendingCommitsToPull() {
   try {
-    const _pendingCommitsToPull = await invoke<number>(
-      "get_pending_commits_to_pull"
-    );
+    const _pendingCommitsToPull = await getPendingCommitsToPull();
     pendingCommitsToPull.value = _pendingCommitsToPull;
   } catch (e) {
     pendingCommitsToPull.value = null;
   }
 }
 
-async function checkoutBranch(branch: string) {
-  await invoke("checkout_branch", { branchName: branch });
+async function handleCheckoutBranch(branch: string) {
+  await checkoutBranch(branch);
   activeBranchName.value = branch;
   repoStore.setActiveBranch(activeBranchName.value);
 }
-async function getRemotes() {
-  console.log("remotes:", await invoke("get_remotes"));
+
+async function handleGetRemotes() {
+  console.log("remotes:", await getRemotes());
 }
-async function fetchRemote() {
+
+async function handleFetchRemote() {
   try {
     isFetching.value = true;
-    await invoke("fetch_remote");
+    await fetchRemote();
     await resfreshBranches();
   } finally {
     isFetching.value = false;
   }
 }
-async function pushRemote() {
+async function handlePushRemote() {
   try {
     isPushing.value = true;
-    await invoke("push_remote");
+    await pushRemote();
     await resfreshBranches();
   } finally {
     isPushing.value = false;
   }
 }
 
-async function pullRemote() {
+async function handlePullRemote() {
   try {
     isPulling.value = true;
-    await invoke("pull_from_remote");
+    await pullRemote();
     await resfreshBranches();
   } finally {
     isPulling.value = false;
@@ -132,14 +134,14 @@ async function pullRemote() {
 }
 onMounted(() => {
   setInterval(async () => {
-    await getPendingCommitsToPush();
-    await getPendingCommitsToPull();
+    await handleGetPendingCommitsToPush();
+    await handleGetPendingCommitsToPull();
   }, 5000);
 });
 
 watchEffect(() => {
   if (repoStore.repo) {
-    openRepo(repoStore.repo);
+    handleOpenRepo(repoStore.repo);
   }
 });
 </script>
@@ -195,7 +197,7 @@ watchEffect(() => {
           'bg-primary': branch === activeBranchName,
           'hover:text-text-hover': branch !== activeBranchName,
         }"
-        @click="() => checkoutBranch(branch)"
+        @click="() => handleCheckoutBranch(branch)"
       >
         {{ branch }}
       </div>
@@ -215,7 +217,7 @@ watchEffect(() => {
 
     <button
       class="p-1 py-2 m-2 mx-4 font-bold transition-colors duration-150 ease-in-out rounded-md text-text hover:bg-primary"
-      @click="fetchRemote"
+      @click="handleFetchRemote"
     >
       <span class="relative flex gap-3">
         <i class="left-0">
@@ -229,7 +231,7 @@ watchEffect(() => {
     </button>
     <button
       class="p-1 py-2 m-2 mx-4 font-bold transition-colors duration-150 ease-in-out rounded-md text-text hover:bg-primary"
-      @click="pullRemote"
+      @click="handlePullRemote"
     >
       <span class="relative flex gap-3">
         <i class="left-0">
@@ -248,7 +250,7 @@ watchEffect(() => {
     </button>
     <button
       class="p-1 py-2 m-2 mx-4 font-bold transition-colors duration-150 ease-in-out rounded-md text-text hover:bg-primary"
-      @click="pushRemote"
+      @click="handlePushRemote"
     >
       <span class="relative flex gap-3">
         <i class="left-0">

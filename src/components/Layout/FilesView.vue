@@ -2,20 +2,19 @@
 import type {
   FileStatusWithStatusLabel,
   GitDiff,
-  FileStatus,
+  RepoDiffStats,
 } from "src/shared/types";
 
 import { useRepoStore } from "@stores";
-import { invoke } from "@tauri-apps/api/tauri";
 import { ChangedFiles, StagedFiles } from "@components/Files";
 import FileDiff from "../Files/FileDiff.vue";
 import { GitStatus, GitStatusCodes } from "src/shared/constants";
-
-type RepoDiffStats = {
-  deletions: number;
-  filesChanged: number;
-  insertions: number;
-};
+import {
+  getGitDiff,
+  getModifiedFiles,
+  getRepoDiff,
+  getStagedFiles,
+} from "src/adapter/git-actions";
 
 const repoStore = useRepoStore();
 const filesModified = ref<FileStatusWithStatusLabel[]>([]);
@@ -30,7 +29,7 @@ const selectedFile = ref<string | null>(null);
 const isAllFilesChangedChecked = ref<boolean>(false);
 
 async function gitDiff() {
-  const res = await invoke<GitDiff[]>("git_diff");
+  const res = await getGitDiff();
   repoDiffLines.value = res;
   if (selectedFile.value === null) {
     selectedFile.value = filesStaged.value[0]?.fileName;
@@ -44,8 +43,8 @@ function getGitStatus(status: number) {
   return GitStatus.Unknown;
 }
 
-async function getModifiedFiles() {
-  const modifiedFiles = await invoke<FileStatus[]>("get_modified_files");
+async function handleGetModifiedFiles() {
+  const modifiedFiles = await getModifiedFiles();
   const fileStatuses = modifiedFiles.map(({ fileName, status }) => {
     return {
       fileName,
@@ -56,14 +55,14 @@ async function getModifiedFiles() {
     };
   });
   filesModified.value = fileStatuses;
-  await getRepoDiff();
+  await handleGetRepoDiff();
   if (!repoStore.selectedFile) {
     repoStore.setSelectedFile(filesModified.value[0]?.fileName);
   }
 }
 
-async function getStagedFiles() {
-  const _stagedFilesNames = await invoke<FileStatus[]>("get_staged_files");
+async function handleGetStagedFiles() {
+  const _stagedFilesNames = await getStagedFiles();
   const fileStatuses = _stagedFilesNames.map(({ fileName, status }) => {
     return {
       fileName,
@@ -80,8 +79,8 @@ async function getStagedFiles() {
   }
 }
 
-async function getRepoDiff() {
-  repoDiffStats.value = await invoke<RepoDiffStats>("get_repo_diff");
+async function handleGetRepoDiff() {
+  repoDiffStats.value = await getRepoDiff();
 }
 
 function toggleAll() {
@@ -103,15 +102,15 @@ function updateFilesModifiedSelection(newValue: boolean, index: number) {
 }
 
 watch(repoStore, async () => {
-  await getModifiedFiles();
-  await getStagedFiles();
+  await handleGetModifiedFiles();
+  await handleGetStagedFiles();
   await gitDiff();
 });
 
 onMounted(() => {
   setInterval(async () => {
-    await getModifiedFiles();
-    await getStagedFiles();
+    await handleGetModifiedFiles();
+    await handleGetStagedFiles();
     await gitDiff();
   }, 5000);
 });
@@ -139,15 +138,15 @@ onMounted(() => {
         :repo-diff-stats="repoDiffStats"
         @update-files-modified-selection="updateFilesModifiedSelection"
         @toggle-all="toggleAll"
-        @get-modified-files="getModifiedFiles"
-        @get-staged-files="getStagedFiles"
+        @get-modified-files="handleGetModifiedFiles"
+        @get-staged-files="handleGetStagedFiles"
       />
       <StagedFiles
         :files-staged="filesStaged"
         :repo-diff-lines="repoDiffLines"
         :repo-diff-stats="repoDiffStats"
-        @get-staged-files="getStagedFiles"
-        @get-modified-files="getModifiedFiles"
+        @get-staged-files="handleGetStagedFiles"
+        @get-modified-files="handleGetModifiedFiles"
       />
     </div>
 

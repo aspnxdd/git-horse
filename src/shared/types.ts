@@ -26,3 +26,9 @@ export interface FileStatusWithStatusLabel {
   status: keyof typeof GitStatus;
   selected: boolean;
 }
+
+export type RepoDiffStats = {
+  deletions: number;
+  filesChanged: number;
+  insertions: number;
+};

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { Repos } from "src/shared/types";
 
-import { invoke } from "@tauri-apps/api/tauri";
 import { useRepoStore, useModalsStore } from "@stores";
 import { debounce } from "src/shared/utils";
+import { getAllReposFromDb } from "src/adapter/db";
 
 const DEBOUNCE_DELAY = 300;
 
@@ -62,8 +62,8 @@ function selectRepo(path: string) {
 }
 
 async function populateRepos() {
-  const res = await invoke<Repos[]>("db_get_all");
-  allRepos.value = res.filter((repo) => repo.name !== "last_opened_repo");
+  const res = await getAllReposFromDb();
+  allRepos.value = res;
 }
 
 watchEffect(() => {
@@ -97,18 +97,18 @@ onUpdated(async () => {
   <Transition name="fade">
     <div
       v-if="modalsStore.searchModal"
-      class="flex w-full h-full fixed overflow-auto bg-slate-900 bg-opacity-60 text-black z-10"
+      class="fixed z-10 flex w-full h-full overflow-auto text-black bg-slate-900 bg-opacity-60"
       @click="handleModal"
     >
       <section
-        class="bg-white absolute flex justify-center flex-col items-center w-2/4 rounded-xl shadow-xl p-1 top-10 left-1/4"
+        class="absolute flex flex-col items-center justify-center w-2/4 p-1 bg-white shadow-xl rounded-xl top-10 left-1/4"
       >
-        <span class="flex justify-center items-center w-full h-full">
+        <span class="flex items-center justify-center w-full h-full">
           <v-icon
             fill="black"
             name="hi-search"
             scale="1.3"
-            class="border-0 ml-6"
+            class="ml-6 border-0"
           />
 
           <input
@@ -121,13 +121,13 @@ onUpdated(async () => {
           />
           <p
             v-if="!searchValue"
-            class="rounded-lg p-2 bg-zinc-200 border border-black"
+            class="p-2 border border-black rounded-lg bg-zinc-200"
           >
             Ctrl
           </p>
           <p
             v-if="!searchValue"
-            class="rounded-lg p-2 bg-zinc-200 border border-black mx-2"
+            class="p-2 mx-2 border border-black rounded-lg bg-zinc-200"
           >
             K
           </p>
@@ -136,7 +136,7 @@ onUpdated(async () => {
         <li
           v-for="repo in allReposFiltered"
           :key="repo.name"
-          class="text-xl border-b-2 border-gray-400 p-3 w-full h-full flex justify-center items-center bg-white overflow-hidden search-results cursor-pointer hover:bg-slate-100"
+          class="flex items-center justify-center w-full h-full p-3 overflow-hidden text-xl bg-white border-b-2 border-gray-400 cursor-pointer search-results hover:bg-slate-100"
           @click="() => selectRepo(repo.path)"
         >
           {{ repo.name }}

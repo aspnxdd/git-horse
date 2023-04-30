@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { Repos } from "src/shared/types";
 
-import { invoke } from "@tauri-apps/api/tauri";
 import { useModalsStore, useThemeStore } from "@stores";
 import { FunctionHighlighter } from "../Theme";
+import { getAllReposFromDb } from "src/adapter/db";
 
 const allRepos = ref<Repos[]>([]);
 const allReposFiltered = ref<Repos[]>([]);
@@ -32,7 +32,7 @@ function switchTheme(theme: string) {
 }
 
 async function populateRepos() {
-  const res = await invoke<Repos[]>("db_get_all");
+  const res = await getAllReposFromDb();
   allRepos.value = res.filter((repo) => repo.name !== "last_opened_repo");
 }
 

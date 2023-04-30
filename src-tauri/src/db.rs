@@ -60,14 +60,16 @@ impl Db {
             .db
             .iter()
             .keys()
-            .map(|k| {
+            .filter_map(|k| {
                 let repo_name = String::from_utf8(k.unwrap().to_vec()).unwrap();
-
+                if (repo_name == LAST_OPENED_REPO) || (repo_name == THEME) {
+                    return None;
+                }
                 let repo_path = self.get(&repo_name).unwrap();
-                Repo {
+                Some(Repo {
                     name: repo_name,
                     path: repo_path,
-                }
+                })
             })
             .collect();
         Ok(res)
