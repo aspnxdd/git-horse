@@ -26,10 +26,6 @@ function getStagedFiles() {
   emits("getStagedFiles");
 }
 
-function getModifiedFiles() {
-  emits("getModifiedFiles");
-}
-
 const repoStore = useRepoStore();
 const commitMessage = ref<string>("");
 
@@ -53,7 +49,7 @@ async function commit() {
 <template>
   <section class="flex flex-col items-start w-2/5">
     <span class="flex items-center justify-center gap-2 p-2">
-      <h1 class="font-bold text-lg">Staged changes:</h1>
+      <h1 class="text-lg font-bold">Staged changes:</h1>
     </span>
     <ul
       class="list-none p-1 bg-text-area-background rounded-xl m-2 h-28 min-w-[20rem] text-xs overflow-auto resize-y"
@@ -61,12 +57,8 @@ async function commit() {
       <li
         v-for="(stagedFileName, idx) in filesStaged"
         :key="stagedFileName.fileName"
-        class="text-left p-1"
-        @click="
-          () => {
-            displayFileDiffStaged(idx);
-          }
-        "
+        class="p-1 text-left"
+        @click="() => displayFileDiffStaged(idx)"
       >
         <FileEntry
           :file-name="stagedFileName.fileName"
@@ -89,14 +81,11 @@ async function commit() {
       />
       <span
         v-if="commitMessage && commitMessage.length > 50"
-        class="text-xs absolute text-red-500 rounded-b-lg bg-yellow-500 p-1 w-full bottom-8"
+        class="absolute w-full p-1 text-xs text-red-500 bg-yellow-500 rounded-b-lg bottom-8"
       >
         <strong>Your commit message should be less than 50 characters.</strong>
       </span>
-      <button
-        class="action-button w-[95%]"
-        @click="commit"
-      >
+      <button class="action-button w-[95%]" @click="commit">
         Commit to {{ repoStore.activeBranch }}
       </button>
     </div>

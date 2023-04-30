@@ -1,3 +1,3 @@
-export { default as SearchBar } from "./SearchBar.vue";
-export { default as ThemeSelector } from "./ThemeSelector.vue";
+export { default as SearchBarModal } from "./SearchBarModal.vue";
+export { default as ThemeSelectorModal } from "./ThemeSelectorModal.vue";
 

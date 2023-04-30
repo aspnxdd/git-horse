@@ -3,6 +3,7 @@ import type { Repos } from "src/shared/types";
 
 import { invoke } from "@tauri-apps/api/tauri";
 import { useModalsStore, useThemeStore } from "@stores";
+import { FunctionHighlighter } from "../Theme";
 
 const allRepos = ref<Repos[]>([]);
 const allReposFiltered = ref<Repos[]>([]);
@@ -60,21 +61,33 @@ onUpdated(async () => {
   <Transition name="fade">
     <div
       v-if="modalsStore.themeModal"
-      class="flex w-full h-full fixed overflow-auto bg-slate-900 bg-opacity-60 text-black z-10"
+      class="fixed z-10 flex w-full h-full overflow-auto text-black bg-slate-900 bg-opacity-60"
       @click="handleModal"
     >
-      <section
-        class="bg-white absolute flex justify-center flex-col items-center w-2/4 rounded-xl shadow-xl p-1 top-10 left-1/4"
+      <div
+        class="absolute flex flex-wrap items-center justify-center w-1/2 max-w-[35rem] gap-10 p-1 shadow-xl bg-slate-200 rounded-xl top-10 left-1/4"
       >
-        <div v-for="theme of THEMES" :key="theme">
-          <button
-            class="w-full text-left p-2 hover:bg-gray-200"
-            @click="() => switchTheme(theme)"
+        <figure
+          v-for="theme of THEMES"
+          :key="theme"
+          class="flex flex-col items-center justify-center p-3 transition-transform duration-150 cursor-pointer hover:scale-105 rounded-xl"
+          @click="switchTheme(theme)"
+        >
+          <div
+            class="p-4 rounded-xl"
+            :style="{
+              backgroundColor: theme === 'Github Light' ? '#fff' : '#24292e',
+              color: theme === 'Github Light' ? '#22272e' : '#fff',
+            }"
           >
+            <function-highlighter :theme="theme" />
+          </div>
+
+          <figcaption class="mt-2 font-bold text-center">
             {{ theme }}
-          </button>
-        </div>
-      </section>
+          </figcaption>
+        </figure>
+      </div>
     </div>
   </Transition>
 </template>

@@ -74,10 +74,7 @@ async function getStagedFiles() {
     };
   });
   filesStaged.value = fileStatuses;
-  console.log({
-    filesStaged: filesStaged.value,
-    repoStoreSelectedFile: repoStore.selectedFile,
-  });
+
   if (!repoStore.selectedFile) {
     repoStore.setSelectedFile(filesStaged.value[0]?.fileName);
   }
@@ -154,7 +151,7 @@ onMounted(() => {
       />
     </div>
 
-    <hr class="border-0 h-4" />
+    <hr class="h-4 border-0" />
 
     <FileDiff
       :repo-diff-lines="repoDiffLines"

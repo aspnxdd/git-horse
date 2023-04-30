@@ -3,7 +3,7 @@
 import { SideBar, FilesView } from "@components/Layout";
 import { invoke } from "@tauri-apps/api/tauri";
 import { useRepoStore, useThemeStore } from "@stores";
-import { SearchBar, ThemeSelector } from "@components/Modal";
+import { SearchBarModal, ThemeSelectorModal } from "@components/Modal";
 import {
   githubDimmedTheme,
   githubLightTheme,
@@ -75,20 +75,20 @@ watch(
     } else if (theme === "github-dimmed") {
       themeSetter(githubDimmedTheme);
     }
-    await invoke("write_theme", { key: theme });
+    await invoke("write_theme", { theme });
   }
 );
 </script>
 
 <template>
-  <SearchBar />
-  <ThemeSelector />
+  <search-bar-modal />
+  <theme-selector-modal />
   <splitpanes>
     <pane size="20" max-size="30" min-size="20">
-      <SideBar />
+      <side-bar />
     </pane>
     <pane size="80">
-      <FilesView />
+      <files-view />
     </pane>
   </splitpanes>
 </template>

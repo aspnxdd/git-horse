@@ -729,8 +729,8 @@ pub fn read_theme() -> Result<String, SledError> {
 }
 
 #[command]
-pub fn write_theme(key: String) -> Result<(), SledError> {
+pub fn write_theme(theme: String) -> Result<(), SledError> {
     let db = db::Db::new()?;
-    let res = db.write_theme(key.as_str())?;
+    let res = db.write_theme(theme.as_str())?;
     return Ok(res);
 }
