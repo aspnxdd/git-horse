@@ -101,17 +101,43 @@ watch(
 </template>
 
 <style>
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  @apply bg-text-area-background;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #787878;
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(0, 0, 0, 0);
+}
+
 .splitpanes__pane {
   font-family: Helvetica, Arial, sans-serif;
   color: rgba(255, 255, 255, 0.6);
   overflow: auto;
-  background: v-bind(bg);
+  @apply bg-background;
 }
+
 .splitpanes--vertical > .splitpanes__splitter {
   min-width: 1px;
   cursor: col-resize;
   width: 3px;
 }
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -123,6 +149,7 @@ pre code.hljs {
   overflow-x: auto;
   padding: 1em;
 }
+
 code.hljs {
   padding: 3px 5px;
 }
@@ -141,12 +168,14 @@ code.hljs {
 .hljs-variable.language_ {
   color: v-bind(language);
 }
+
 .hljs-title,
 .hljs-title.class_,
 .hljs-title.class_.inherited__,
 .hljs-title.function_ {
   color: v-bind(functionColor);
 }
+
 .hljs-attr,
 .hljs-attribute,
 .hljs-literal,
@@ -159,48 +188,59 @@ code.hljs {
 .hljs-variable {
   color: v-bind(variable);
 }
+
 .hljs-meta .hljs-string,
 .hljs-regexp,
 .hljs-string {
   color: v-bind(meta);
 }
+
 .hljs-built_in,
 .hljs-symbol {
   color: v-bind(symbol);
 }
+
 .hljs-code,
 .hljs-comment,
 .hljs-formula {
   color: v-bind(formula);
 }
+
 .hljs-name,
 .hljs-quote,
 .hljs-selector-pseudo,
 .hljs-selector-tag {
   color: v-bind(selector);
 }
+
 .hljs-subst {
   color: v-bind(subst);
 }
+
 .hljs-section {
   color: v-bind(section);
   font-weight: 700;
 }
+
 .hljs-bullet {
   color: v-bind(bullet);
 }
+
 .hljs-emphasis {
   color: v-bind(emphasis);
   font-style: italic;
 }
+
 .hljs-strong {
   color: v-bind(strong);
   font-weight: 700;
 }
+
 .hljs-addition {
   color: v-bind(addition);
   background-color: v-bind(additionBg);
 }
+
 .hljs-deletion {
   color: v-bind(deletion);
   background-color: v-bind(deletionBg);
