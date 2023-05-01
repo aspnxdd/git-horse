@@ -14,3 +14,8 @@ pub fn get_origin_and_current_name_from_line(line: &str) -> (String, String) {
     let current_name = line.split(" ").nth(3).unwrap().trim_start_matches("b/");
     (origin_name.to_string(), current_name.to_string())
 }
+
+// Must count also the deleted files
+pub fn path_is_file(path: &str) -> bool {
+    !path.ends_with("/")
+}

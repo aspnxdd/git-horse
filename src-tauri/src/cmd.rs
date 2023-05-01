@@ -11,7 +11,9 @@ use crate::error::{GitError, SledError};
 use crate::git;
 use crate::pull::{do_fetch, do_merge};
 use crate::state::AppArg;
-use crate::utils::{get_absolute_path_from_relative, get_origin_and_current_name_from_line};
+use crate::utils::{
+    get_absolute_path_from_relative, get_origin_and_current_name_from_line, path_is_file,
+};
 
 const INTERESTING: git2::Status = git2::Status::from_bits_truncate(
     git2::Status::WT_NEW.bits()
@@ -281,6 +283,9 @@ pub fn get_modified_files(state: AppArg) -> Result<Vec<FileStatus>, GitError> {
                 let status = entry.status();
                 if status.intersects(INTERESTING) {
                     if let Some(path) = entry.path() {
+                        if !path_is_file(&path) {
+                            return None;
+                        }
                         let file_status = FileStatus {
                             file_name: path.to_owned(),
                             status: status.bits(),
@@ -361,6 +366,9 @@ pub fn get_staged_files(state: AppArg) -> Result<Vec<FileStatus>, GitError> {
                 let status = entry.status();
                 if status.intersects(INTERESTING_STAGED) {
                     if let Some(path) = entry.path() {
+                        if !path_is_file(&path) {
+                            return None;
+                        }
                         let file_status = FileStatus {
                             file_name: path.to_owned(),
                             status: status.bits(),
@@ -529,16 +537,19 @@ pub fn git_diff(state: AppArg) -> Result<Vec<GitDiff>, GitError> {
             .for_each(|entry| {
                 let head = entry.head_to_index();
                 let status = entry.status();
-                let path = entry.path();
+                let path = entry.path().unwrap();
+                if !path_is_file(&path) {
+                    return;
+                }
                 if head.is_some() && status.intersects(INTERESTING_STAGED) {
                     let head = head.unwrap();
                     if head.new_file().size() != 0 {
-                        diff_opts.pathspec(Path::new(&path.unwrap().to_owned()));
+                        diff_opts.pathspec(Path::new(&path.to_owned()));
                     }
                 } else {
                     if status.intersects(INTERESTING) {
-                        diff_opts.pathspec(Path::new(&path.unwrap().to_owned()));
-                        files_paths.push(path.unwrap().to_owned());
+                        diff_opts.pathspec(Path::new(&path.to_owned()));
+                        files_paths.push(path.to_owned());
                     }
                 }
             });
