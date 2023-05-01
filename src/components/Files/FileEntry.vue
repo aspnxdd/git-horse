@@ -61,14 +61,14 @@ function getStatusColor() {
 
     <label
       :for="fileName"
-      class="mr-2 hover:text-text-hover flex justify-center"
+      class="flex justify-center mr-2 break hover:text-text-hover"
     >
       <input
         v-if="isInput"
         :id="fileName"
         :ref="fileName"
         type="checkbox"
-        class="accent-pink-500 mr-2"
+        class="mr-2 accent-pink-500"
         :checked="props.checked"
         @input="(event)=>updateChecked((event.target as HTMLInputElement).checked)"
         @click="displayFile"
@@ -78,4 +78,9 @@ function getStatusColor() {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.break {
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+</style>
