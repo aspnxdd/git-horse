@@ -171,11 +171,14 @@ main {
   cursor: default;
 }
 
-tr:first-of-type > td:first-of-type,
-tr:last-of-type > td:first-of-type {
+tr:first-of-type > td:first-of-type {
   border-top-left-radius: 0.75rem;
+}
+
+tr:last-of-type > td:first-of-type {
   border-bottom-left-radius: 0.75rem;
 }
+
 
 .consolas {
   font-family: "Consolas", "Courier New", Courier, monospace;
