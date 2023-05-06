@@ -62,6 +62,10 @@ export function checkoutBranch(branchName: string): Promise<void> {
   return invoke("checkout_branch", { branchName });
 }
 
+export function checkoutRemoteBranch(branchName: string): Promise<void> {
+  return invoke("checkout_remote_branch", { branchName });
+}
+
 export function getRemotes(): Promise<string[]> {
   return invoke("get_remotes");
 }

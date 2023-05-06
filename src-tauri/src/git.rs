@@ -1,8 +1,16 @@
 use crate::error::GitError;
-use git2::{BranchType, Repository};
+use git2::{BranchType, RemoteCallbacks, Repository};
 
 pub struct Repo {
     pub repo: Repository,
+}
+
+pub fn get_remote_callbacks() -> RemoteCallbacks<'static> {
+    let mut cb = RemoteCallbacks::new();
+    let git_config = git2::Config::open_default().unwrap();
+    let mut ch = git2_credentials::CredentialHandler::new(git_config);
+    cb.credentials(move |url, username, allowed| ch.try_next_credential(url, username, allowed));
+    return cb;
 }
 
 impl Repo {
@@ -36,15 +44,6 @@ impl Repo {
             }
         }
 
-        // Should create local branch of the remote branch
-        if let Ok(branch) = self.repo.find_branch(&branch_name, BranchType::Remote) {
-            if branch.get().is_remote() {
-                let branch_ref = branch.get().name().unwrap();
-                // let new_branch = repo.branch(&branch_ref, BranchType::Local)?;
-                self.repo.set_head(&branch_ref)?;
-                return Ok(());
-            }
-        }
         Err(GitError::GitCheckoutError)
     }
 }

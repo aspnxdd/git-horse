@@ -121,6 +121,54 @@ pub fn checkout_branch(state: AppArg, branch_name: String) -> Result<(), GitErro
 }
 
 #[command]
+pub fn checkout_remote_branch(state: AppArg, branch_name: String) -> Result<(), GitError> {
+    let remote = "origin".to_string();
+
+    let repo = state.repo.clone();
+    let repo = repo.lock().unwrap();
+    let repo = repo.as_ref();
+    if let Some(repo) = repo {
+        let mut remote = repo
+            .repo
+            .find_remote("origin")
+            .or_else(|_| repo.repo.remote_anonymous(&remote))?;
+        let branch_name_no_origin = branch_name.replace("origin/", "");
+        let cb = git::get_remote_callbacks();
+
+        let connection = remote.connect_auth(git2::Direction::Fetch, Some(cb), None)?;
+        let remote_ref_name = format!("refs/heads/{}", branch_name_no_origin);
+        let remote_head = connection
+            .list()?
+            .iter()
+            .find(|x| x.name() == &remote_ref_name)
+            .ok_or(GitError::RemoteHeadNotFound)?;
+
+        let remote_branch_oid = remote_head.oid();
+
+        let mut reference = repo.repo.reference(
+            &remote_ref_name,
+            remote_branch_oid,
+            true,
+            &format!("Setting {} to {}", branch_name_no_origin, remote_branch_oid),
+        )?;
+
+        reference.set_target(remote_branch_oid, "checkout")?;
+
+        let mut branch = git2::Branch::wrap(reference);
+
+        branch.set_upstream(Some(&branch_name)).unwrap();
+
+        repo.repo.set_head(&remote_ref_name)?;
+
+        repo.repo
+            .checkout_head(Some(git2::build::CheckoutBuilder::default().force()))?;
+
+        return Ok(());
+    }
+    Err(GitError::RepoNotFound)
+}
+
+#[command]
 pub fn get_remotes(state: AppArg) -> Result<Vec<String>, GitError> {
     let repo = state.repo.clone();
     let repo = repo.lock().unwrap();
@@ -217,16 +265,12 @@ pub fn push_remote(state: AppArg, remote: Option<String>) -> Result<(), GitError
     let repo = repo.lock().unwrap();
     let repo = repo.as_ref();
     if let Some(repo) = repo {
-        let mut cb = RemoteCallbacks::new();
+        let cb = git::get_remote_callbacks();
         let mut remote = repo
             .repo
             .find_remote(remote)
             .or_else(|_| repo.repo.remote_anonymous(remote))?;
-        let git_config = git2::Config::open_default().unwrap();
-        let mut ch = git2_credentials::CredentialHandler::new(git_config);
-        cb.credentials(move |url, username, allowed| {
-            ch.try_next_credential(url, username, allowed)
-        });
+
         let head = repo.repo.head()?;
         let head = head.shorthand().unwrap();
         let mut conn = remote.connect_auth(git2::Direction::Push, Some(cb), None)?;

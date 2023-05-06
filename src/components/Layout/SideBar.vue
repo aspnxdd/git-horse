@@ -14,6 +14,7 @@ import {
   fetchRemote,
   pushRemote,
   pullRemote,
+  checkoutRemoteBranch,
 } from "src/adapter/git-actions";
 
 const activeBranchName = ref<null | string>(null);
@@ -96,6 +97,12 @@ async function handleGetPendingCommitsToPull() {
 
 async function handleCheckoutBranch(branch: string) {
   await checkoutBranch(branch);
+  activeBranchName.value = branch;
+  repoStore.setActiveBranch(activeBranchName.value);
+}
+
+async function handleCheckoutRemoteBranch(branch: string) {
+  await checkoutRemoteBranch(branch);
   activeBranchName.value = branch;
   repoStore.setActiveBranch(activeBranchName.value);
 }
@@ -208,10 +215,14 @@ watchEffect(() => {
         class="flex justify-between w-full py-1 pl-2 pr-1 font-semibold text-left cursor-default text-text"
       >
         {{ branch }}
-        <strong
-          class="transition-colors duration-150 ease-in-out cursor-default hover:text-text-hover"
-          ><v-icon name="hi-solid-chevron-double-right"
-        /></strong>
+        <div>
+          <v-icon
+            name="hi-solid-chevron-double-right"
+            as="button"
+            class="transition-colors duration-150 ease-in-out cursor-default hover:text-text-hover"
+            @click="() => handleCheckoutRemoteBranch(branch)"
+          />
+        </div>
       </div>
     </div>
 

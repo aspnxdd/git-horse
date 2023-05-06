@@ -8,8 +8,7 @@ pub enum GitError {
     GetDiffFailed,
     GetStatsFailed,
     GitError(String),
-    SledError(String),
-    SledCantInsert,
+    RemoteHeadNotFound,
 }
 #[derive(Debug, Serialize, Deserialize)]
 pub enum SledError {
