@@ -7,8 +7,10 @@ pub enum GitError {
     GitCheckoutError,
     GetDiffFailed,
     GetStatsFailed,
-    GitError(String),
+    Error(String),
     RemoteHeadNotFound,
+    InvalidHead,
+    InvalidCommit,
 }
 #[derive(Debug, Serialize, Deserialize)]
 pub enum SledError {
@@ -26,7 +28,7 @@ impl std::fmt::Display for GitError {
 
 impl From<git2::Error> for GitError {
     fn from(err: git2::Error) -> Self {
-        GitError::GitError(format!("{:#?}", err.message()))
+        GitError::Error(format!("{:#?}", err.message()))
     }
 }
 

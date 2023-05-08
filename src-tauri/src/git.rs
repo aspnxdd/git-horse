@@ -5,14 +5,6 @@ pub struct Repo {
     pub repo: Repository,
 }
 
-pub fn get_remote_callbacks() -> RemoteCallbacks<'static> {
-    let mut cb = RemoteCallbacks::new();
-    let git_config = git2::Config::open_default().unwrap();
-    let mut ch = git2_credentials::CredentialHandler::new(git_config);
-    cb.credentials(move |url, username, allowed| ch.try_next_credential(url, username, allowed));
-    return cb;
-}
-
 impl Repo {
     pub fn new(repo: Repository) -> Self {
         Repo { repo }
@@ -47,3 +39,27 @@ impl Repo {
         Err(GitError::GitCheckoutError)
     }
 }
+
+pub fn get_remote_callbacks() -> RemoteCallbacks<'static> {
+    let mut cb = RemoteCallbacks::new();
+    let git_config = git2::Config::open_default().unwrap();
+    let mut ch = git2_credentials::CredentialHandler::new(git_config);
+    cb.credentials(move |url, username, allowed| ch.try_next_credential(url, username, allowed));
+    return cb;
+}
+
+pub const INTERESTING: git2::Status = git2::Status::from_bits_truncate(
+    git2::Status::WT_NEW.bits()
+        | git2::Status::CONFLICTED.bits()
+        | git2::Status::WT_MODIFIED.bits()
+        | git2::Status::WT_DELETED.bits(),
+);
+pub const INTERESTING_STAGED: git2::Status = git2::Status::from_bits_truncate(
+    git2::Status::INDEX_DELETED.bits()
+        | git2::Status::INDEX_MODIFIED.bits()
+        | git2::Status::INDEX_NEW.bits()
+        | git2::Status::INDEX_RENAMED.bits()
+        | git2::Status::INDEX_TYPECHANGE.bits(),
+);
+
+pub const DEFAULT_REMOTE: &str = "origin";
