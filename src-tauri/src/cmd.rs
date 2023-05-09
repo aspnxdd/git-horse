@@ -658,6 +658,75 @@ pub fn get_pending_commits_to_pull(state: AppArg) -> Result<u32, GitError> {
 }
 
 #[command]
+pub fn unstage_all(state: AppArg) -> Result<(), GitError> {
+    let repo = state.repo.clone();
+    let repo = repo.lock().unwrap();
+    let repo = repo.as_ref();
+    if let Some(repo) = repo {
+        let mut head = repo.repo.head()?;
+        let commit = head.peel_to_commit().unwrap();
+        let tree = commit.tree().unwrap();
+        let object = repo.repo.find_object(tree.id(), None).unwrap();
+        let mut checkout_builder = git2::build::CheckoutBuilder::new();
+        checkout_builder.force();
+        repo.repo
+            .checkout_tree(&object, Some(&mut checkout_builder))?;
+        repo.repo.index()?.write()?;
+        head.set_target(tree.id(), "checkout")?;
+        return Ok(());
+    }
+    Err(GitError::RepoNotFound)
+}
+
+#[command]
+pub fn unstage_file(state: AppArg, file_name: String) -> Result<(), GitError> {
+    let repo = state.repo.clone();
+    let repo = repo.lock().unwrap();
+    let repo = repo.as_ref();
+    if let Some(repo) = repo {
+        let mut index = repo.repo.index()?;
+
+        index.remove_all(vec![Path::new(&file_name)], Some(&mut |path, _| 0))?;
+        index.write()?;
+        let mut revwalk = repo.repo.revwalk().unwrap();
+        revwalk.push_head().unwrap();
+
+        // Iterate over the commits in reverse order until the file is found
+        let mut file_content = None;
+        println!("1");
+        for commit_id in revwalk {
+            let commit = repo.repo.find_commit(commit_id.unwrap()).unwrap();
+
+            // Get the tree for the commit
+            let tree = commit.tree_id();
+
+            // Get the tree entry for the file in the tree
+            let file_entry = repo
+                .repo
+                .find_tree(tree)
+                .unwrap()
+                .get_path(Path::new(&file_name));
+
+            // If the file exists in the tree, get its content and break out of the loop
+            let blob = repo.repo.find_blob(file_entry.unwrap().id()).unwrap();
+            file_content = Some(blob.content().to_vec());
+            break;
+        }
+        println!("2");
+
+        // Write the contents of the blob to the file in the working directory
+        let file_abs_path = get_absolute_path_from_relative(repo, &file_name);
+        let file_path = Path::new(&file_abs_path);
+        // fs::write(file_path, file_content.unwrap()).unwrap();
+
+        // Add the file to the index
+
+        return Ok(());
+    }
+    Err(GitError::RepoNotFound)
+}
+
+#[command]
 pub fn add_new_repo(repo_name: Option<String>, repo_path: Option<String>) -> Result<(), SledError> {
     let db = db::Db::new()?;
     db.insert(repo_name.unwrap().as_str(), repo_path.unwrap().as_str())?;

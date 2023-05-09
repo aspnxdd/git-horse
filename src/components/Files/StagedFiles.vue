@@ -3,7 +3,7 @@ import type { FileStatusWithStatusLabel, GitDiff } from "src/shared/types";
 
 import { useRepoStore } from "@stores";
 import { FileEntry } from "./index";
-import { commit } from "src/adapter/git-actions";
+import { commit, unstageFile, unstageAll } from "src/adapter/git-actions";
 
 const props = defineProps<{
   filesStaged: FileStatusWithStatusLabel[];
@@ -67,6 +67,24 @@ async function handleCommit() {
         />
       </li>
     </ul>
+    <button
+      @click="
+        () => {
+          unstageFile(filesStaged[0].fileName);
+        }
+      "
+    >
+      Unstage file
+    </button>
+    <button
+      @click="
+        () => {
+          unstageAll();
+        }
+      "
+    >
+      Unstage all
+    </button>
     <div class="relative flex justify-start flex-col w-[21rem] items-center">
       <textarea
         v-model="commitMessage"

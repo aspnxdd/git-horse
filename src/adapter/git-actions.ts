@@ -81,3 +81,11 @@ export function pullRemote(): Promise<void> {
 export function pushRemote(): Promise<void> {
   return invoke("push_remote");
 }
+
+export function unstageFile(file: string): Promise<void> {
+  return invoke("unstage_file", { fileName: file });
+}
+
+export function unstageAll(): Promise<void> {
+  return invoke("unstage_all");
+}

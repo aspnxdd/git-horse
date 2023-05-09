@@ -43,7 +43,9 @@ fn main() {
             cmd::pull_from_remote,
             cmd::read_theme,
             cmd::write_theme,
-            cmd::checkout_remote_branch
+            cmd::checkout_remote_branch,
+            cmd::unstage_all,
+            cmd::unstage_file,
         ])
         .menu(menu::Menu::new())
         .on_menu_event(|event| {
