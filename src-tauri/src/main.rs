@@ -11,7 +11,6 @@ mod db;
 mod error;
 mod git;
 mod menu;
-mod pull;
 mod state;
 mod utils;
 

@@ -9,7 +9,6 @@ use tauri::command;
 use crate::db;
 use crate::error::{GitError, SledError};
 use crate::git;
-use crate::pull::{do_fetch, do_merge};
 use crate::state::{AppArg, FileStatus, GitDiff, MyBranchType, MyState, Stats};
 use crate::utils::{
     get_absolute_path_from_relative, get_origin_and_current_name_from_line, path_is_file,
@@ -277,8 +276,8 @@ pub fn pull_from_remote(state: AppArg, remote: Option<String>) -> Result<(), Git
     if let Some(repo) = repo {
         let remote_branch = repo.get_current_branch_name()?;
         let mut remote = repo.repo.find_remote(remote_name)?;
-        let fetch_commit = do_fetch(&repo.repo, &[&remote_branch], &mut remote)?;
-        do_merge(&repo.repo, &remote_branch, fetch_commit)?;
+        let fetch_commit = git::do_fetch(&repo.repo, &[&remote_branch], &mut remote)?;
+        git::do_merge(&repo.repo, &remote_branch, fetch_commit)?;
         return Ok(());
     }
     Err(GitError::RepoNotFound)
